@@ -52,4 +52,7 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     implementation(libs.androidx.core.splashscreen.v100)
+    implementation(libs.picasso)
+
+
 }
