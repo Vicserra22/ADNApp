@@ -7,8 +7,9 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="adn_light_green">#E6FFE1</color>
+    <color name="light_green">#E6FFE1</color>
     <color name="adn_green">#398F60</color>
     <color name="adn_black">#000000</color>
     <color name="adn_dark_green">#398F60</color>
+    <color name="adn_light_green">#C8E6C9</color>
 </resources>
