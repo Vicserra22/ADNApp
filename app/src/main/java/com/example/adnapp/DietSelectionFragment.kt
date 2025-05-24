@@ -1,4 +1,4 @@
-package com.example.adnapp.fragments
+package com.example.adnapp
 
 import android.os.Bundle
 import android.view.LayoutInflater

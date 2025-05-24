@@ -24,4 +24,12 @@
     <string name="frutos_secos">Frutos secos</string>
     <string name="alimentos_favoritos">Alimentos favoritos</string>
     <string name="finalizar">Finalizar</string>
+    <string name="log_in">Log in</string>
+    <string name="sign_up">Sign up</string>
+    <string name="registrarse">Registrarse</string>
+    <string name="nombre_de_usuario">Nombre de usuario</string>
+    <string name="ingrese_su_nombre_de_usuario">Ingrese su nombre de usuario</string>
+    <string name="contrase_a">Contraseña</string>
+    <string name="ingrese_su_contrase_a">Ingrese su contraseña</string>
+    <string name="iniciar_sesi_n">Iniciar Sesión</string>
 </resources>

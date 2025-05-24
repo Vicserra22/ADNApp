@@ -12,4 +12,6 @@
     <color name="adn_black">#000000</color>
     <color name="adn_dark_green">#398F60</color>
     <color name="adn_light_green">#C8E6C9</color>
+    <color name="background_light">#F8FFF6</color>
+    <color name="placeholder">#4E4E4E</color>
 </resources>
