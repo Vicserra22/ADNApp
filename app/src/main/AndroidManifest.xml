@@ -1,5 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.example.adnapp">
 
     <application
         android:allowBackup="true"
@@ -10,20 +11,45 @@
         android:theme="@style/Theme.ADNApp"
         tools:targetApi="31">
 
+        <!-- StartActivity es el launcher y hace la comprobación auth -->
         <activity
-            android:name=".SplashActivity"
+            android:name=".StartActivity"
             android:exported="true"
-            android:theme="@style/Theme.ADNApp.Splash">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+            android:theme="@style/Theme.ADNApp">
+
         </activity>
+
+        <activity
+            android:name=".WelcomeActivity"
+            android:exported="true"
+            android:theme="@style/Theme.ADNApp" />
+
+        <activity
+            android:name=".LoginActivity"
+            android:exported="true"
+            android:theme="@style/Theme.ADNApp" />
+
+        <activity
+            android:name=".RegisterActivity"
+            android:exported="true"
+            android:theme="@style/Theme.ADNApp" />
 
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:theme="@style/Theme.ADNApp" />
+
+        <!-- Si tienes SplashActivity y quieres mantenerla -->
+
+        <activity
+            android:name=".SplashActivity"
+            android:exported="true"
+            android:theme="@style/Theme.ADNApp.Splash" >
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+        </activity>
     </application>
 
 </manifest>

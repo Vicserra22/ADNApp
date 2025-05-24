@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "311616049561",
+    "project_id": "adnapp-49ccf",
+    "storage_bucket": "adnapp-49ccf.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:311616049561:android:aa4865d3e983ea98ba8308",
+        "android_client_info": {
+          "package_name": "com.example.adnapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCTRWTqH5Yq2MKpMQGK7kYVzAXv4i6AEk4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

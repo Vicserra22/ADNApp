@@ -3,7 +3,7 @@
     <!-- Tema principal -->
     <style name="Theme.ADNApp" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/dark_green</item>
-        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorPrimaryVariant">@color/olive</item>
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorSecondary">@color/teal_200</item>
         <item name="colorSecondaryVariant">@color/teal_700</item>
@@ -14,6 +14,9 @@
     <!-- Tema para splash screen -->
     <style name="Theme.ADNApp.Splash" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="android:windowBackground">@color/adn_light_green</item>
+        <item name="android:statusBarColor">#C8E6C9</item>
+        <item name="android:windowLightStatusBar">true</item>
     </style>
+
 
 </resources>
