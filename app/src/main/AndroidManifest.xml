@@ -2,6 +2,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.example.adnapp">
 
+    <!--Permisos-->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/adn_logo"
@@ -10,14 +13,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ADNApp"
         tools:targetApi="31">
-
-        <!-- StartActivity es el launcher y hace la comprobación auth -->
-        <activity
-            android:name=".StartActivity"
-            android:exported="true"
-            android:theme="@style/Theme.ADNApp">
-
-        </activity>
 
         <activity
             android:name=".WelcomeActivity"
@@ -39,16 +34,21 @@
             android:exported="true"
             android:theme="@style/Theme.ADNApp" />
 
+        <activity
+            android:name=".DataRegistrationActivity"
+            android:exported="true"
+            android:theme="@style/Theme.ADNApp" />
+
         <!-- Si tienes SplashActivity y quieres mantenerla -->
 
         <activity
             android:name=".SplashActivity"
             android:exported="true"
-            android:theme="@style/Theme.ADNApp.Splash" >
-        <intent-filter>
-            <action android:name="android.intent.action.MAIN" />
-            <category android:name="android.intent.category.LAUNCHER" />
-        </intent-filter>
+            android:theme="@style/Theme.ADNApp.Splash">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
     </application>
 

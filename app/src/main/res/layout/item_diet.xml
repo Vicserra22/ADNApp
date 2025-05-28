@@ -12,7 +12,8 @@
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="12dp">
+        android:padding="12dp"
+        android:id="@+id/layoutDietItem">
 
         <LinearLayout
             android:orientation="vertical"
@@ -27,16 +28,18 @@
                 android:layout_height="wrap_content"
                 tools:text="Nombre dieta"
                 android:textSize="18sp"
-                android:textStyle="bold"/>
+                android:textStyle="bold"
+                android:textColor="@color/adn_black"/>
 
             <TextView
-                android:id="@+id/tvDietDesc"
+                android:id="@+id/tvDietDescription"
                 android:layout_width="match_parent"
                 android:layout_height="68dp"
                 android:ellipsize="end"
                 android:maxLines="3"
                 android:textSize="14sp"
-                tools:text="Descripción breve de la dieta" />
+                tools:text="Descripción breve de la dieta"
+                android:textColor="@color/placeholder"/>
         </LinearLayout>
 
         <ImageView
