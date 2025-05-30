@@ -45,9 +45,11 @@ class ProfileFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_profile, container, false)
+    ): View {
+        _binding = FragmentProfileBinding.inflate(inflater, container, false)
+        return binding.root
     }
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -127,13 +129,14 @@ class ProfileFragment : Fragment() {
             .addOnSuccessListener { document ->
                 if (document != null && document.exists()) {
                     val info = document.get("info") as? Map<*, *>
-                    if (info != null) {
+                    val dieta = document.get("dieta") as? Map<*, *>
+                    if (info != null && dieta != null) {
                         tvNameValue.text = info["nombre"]?.toString() ?: "No name"
                         tvGenderValue.text = info["genero"]?.toString() ?: "Not defined"
                         tvAgeValue.text = (info["edad"] as? Long)?.toString() ?: "0"
                         tvWeightValue.text = (info["peso"] as? Long)?.toString() ?: "0"
                         tvHeightValue.text = (info["altura"] as? Long)?.toString() ?: "0"
-                        tvDietValue.text = info["dietaSeleccionada"]?.toString() ?: "Not assigned"
+                        tvDietValue.text = dieta["nombre"]?.toString() ?: "Not assigned"
                     }
                 }
             }
@@ -188,4 +191,10 @@ class ProfileFragment : Fragment() {
             }
             .show()
     }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
 }
