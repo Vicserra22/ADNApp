@@ -19,8 +19,9 @@ class DietAdapter(
 
     inner class DietViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val tvTitle: TextView = itemView.findViewById(R.id.tvDietTitle)
-        val tvDesc: TextView = itemView.findViewById(R.id.tvDietDesc)
+        val tvDesc: TextView = itemView.findViewById(R.id.tvDietDescription)
         val ivImage: ImageView = itemView.findViewById(R.id.ivDietImage)
+        val layoutItem: View = itemView.findViewById(R.id.layoutDietItem)
 
         init {
             itemView.setOnClickListener {
@@ -43,18 +44,20 @@ class DietAdapter(
 
     override fun onBindViewHolder(holder: DietViewHolder, position: Int) {
         val diet = diets[position]
-        holder.tvTitle.text = diet.title
+        holder.tvTitle.text = diet.name
         holder.tvDesc.text = diet.description
 
-        // Carga la imagen con Picasso o Glide, aquí uso Picasso como ejemplo:
         Picasso.get()
             .load(diet.imageUrl)
-            .placeholder(R.drawable.ic_placeholder) // Pon un placeholder en drawable
+            .placeholder(R.drawable.ic_placeholder)
             .into(holder.ivImage)
 
-        // Cambia el fondo si está seleccionado
-        holder.itemView.isSelected = (position == selectedPosition)
-        holder.itemView.alpha = if (position == selectedPosition) 1f else 0.7f
+        val bgRes = if (position == selectedPosition) {
+            R.drawable.bg_diet_selected
+        } else {
+            R.drawable.bg_diet_default
+        }
+        holder.layoutItem.setBackgroundResource(bgRes)
     }
 
     override fun getItemCount() = diets.size

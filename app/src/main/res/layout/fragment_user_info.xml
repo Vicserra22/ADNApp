@@ -2,36 +2,54 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:padding="24dp">
 
     <LinearLayout
-        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp">
+        android:layout_marginTop="20dp"
+        android:orientation="vertical">
+
+
+        <!-- Nombre -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/nombre_de_usuario"
+            android:textSize="16sp"
+            android:textColor="@color/adn_black"/>
+
+        <EditText
+            android:id="@+id/etName"
+            android:hint="@string/ingrese_su_nombre_de_usuario"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
 
         <!-- Edad -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
             android:text="@string/edad"
             android:textSize="16sp"
-            android:layout_marginTop="12dp"/>
+            android:textColor="@color/adn_black"/>
 
         <EditText
             android:id="@+id/etAge"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="number"
-            android:hint="@string/introduce_tu_edad" />
+            android:hint="@string/introduce_tu_edad"
+            android:inputType="number" />
 
         <!-- Sexo -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
             android:text="@string/sexo"
             android:textSize="16sp"
-            android:layout_marginTop="12dp"/>
+            android:textColor="@color/adn_black"/>
 
         <RadioGroup
             android:id="@+id/rgGender"
@@ -49,48 +67,52 @@
                 android:id="@+id/rbFemale"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/mujer"
-                android:layout_marginStart="16dp" />
+                android:layout_marginStart="16dp"
+                android:text="@string/mujer" />
         </RadioGroup>
 
         <!-- Altura -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
             android:text="@string/altura_cm"
             android:textSize="16sp"
-            android:layout_marginTop="12dp"/>
+            android:textColor="@color/adn_black"/>
 
         <EditText
             android:id="@+id/etHeight"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="numberDecimal"
-            android:hint="@string/introduce_tu_altura" />
+            android:hint="@string/introduce_tu_altura"
+            android:inputType="numberDecimal" />
 
         <!-- Peso -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
             android:text="@string/peso_kg"
             android:textSize="16sp"
-            android:layout_marginTop="12dp"/>
+            android:textColor="@color/adn_black"/>
 
         <EditText
             android:id="@+id/etWeight"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="numberDecimal"
-            android:hint="@string/introduce_tu_peso" />
+            android:hint="@string/introduce_tu_peso"
+            android:inputType="numberDecimal" />
 
         <!-- Botón siguiente -->
         <Button
             android:id="@+id/btnNextUserInfo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/siguiente"
             android:layout_marginTop="24dp"
-            android:enabled="false" />
+            android:enabled="true"
+            android:text="@string/siguiente"
+            android:backgroundTint="@color/adn_dark_green"
+            android:textColor="@color/white"/>
 
     </LinearLayout>
 
