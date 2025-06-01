@@ -60,15 +60,17 @@ dependencies {
     // Import the Firebase BoM
     implementation(platform(libs.firebase.bom.v33130))
 
-    // TODO: Add the dependencies for Firebase products you want to use
     // When using the BoM, don't specify versions in Firebase dependencies
     implementation(libs.google.firebase.analytics)
+    implementation(libs.firebase.auth.ktx)
 
-    implementation (libs.firebase.auth.ktx)
+    // Retrofit
+    implementation (libs.converter.gson)
+    implementation(libs.retrofit)
+    implementation (libs.gson)
 
-
-    // Add the dependencies for any other desired Firebase products
-    // https://firebase.google.com/docs/android/setup#available-libraries
-
+//// Glide (para cargar imágenes en el RecyclerView)
+//    implementation ('com.github.bumptech.glide:glide:4.16.0')
+//    kapt 'com.github.bumptech.glide:compiler:4.16.0'
 
 }

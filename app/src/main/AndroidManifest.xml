@@ -2,7 +2,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.example.adnapp">
 
-    <!--Permisos-->
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
@@ -12,39 +11,45 @@
         android:roundIcon="@drawable/adn_logo"
         android:supportsRtl="true"
         android:theme="@style/Theme.ADNApp"
-        tools:targetApi="31">
+        tools:targetApi="31"
+        >
 
         <activity
             android:name=".WelcomeActivity"
             android:exported="true"
-            android:theme="@style/Theme.ADNApp" />
+            android:theme="@style/Theme.ADNApp"
+            android:screenOrientation="portrait"
+            />
 
         <activity
             android:name=".LoginActivity"
             android:exported="true"
-            android:theme="@style/Theme.ADNApp" />
+            android:theme="@style/Theme.ADNApp"
+            android:screenOrientation="portrait"/>
 
         <activity
             android:name=".RegisterActivity"
             android:exported="true"
-            android:theme="@style/Theme.ADNApp" />
+            android:theme="@style/Theme.ADNApp"
+            android:screenOrientation="portrait"/>
 
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.ADNApp" />
+            android:theme="@style/Theme.ADNApp"
+            android:screenOrientation="portrait"/>
 
         <activity
             android:name=".DataRegistrationActivity"
             android:exported="true"
-            android:theme="@style/Theme.ADNApp" />
-
-        <!-- Si tienes SplashActivity y quieres mantenerla -->
+            android:theme="@style/Theme.ADNApp"
+            android:screenOrientation="portrait"/>
 
         <activity
             android:name=".SplashActivity"
             android:exported="true"
-            android:theme="@style/Theme.ADNApp.Splash">
+            android:theme="@style/Theme.ADNApp.Splash"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
