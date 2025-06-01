@@ -40,4 +40,5 @@
     <string name="recuerda_que_las_macros_son_por_cada_100_gramos">¡Recuerda que las macros son <b>por cada 100g</b>!</string>
     <string name="tus_objetivos_diarios">Tus objetivos diarios</string>
     <string name="total_aim">{{total}}/{{aim}}</string>
+    <string name="cerrar_sesi_n">Cerrar sesión</string>
 </resources>

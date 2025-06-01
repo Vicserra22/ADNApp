@@ -1,13 +1,11 @@
 package com.example.adnapp.ui.dashboard
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
+import android.util.Log
+import androidx.lifecycle.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.util.*
 
 class DashboardViewModel : ViewModel() {
 
@@ -15,62 +13,82 @@ class DashboardViewModel : ViewModel() {
     private val auth = FirebaseAuth.getInstance()
 
     private val _consumoDiario = MutableLiveData<Map<String, Double>>()
-    val consumoDiario: LiveData<Map<String, Double>> get() = _consumoDiario
+    private val _objetivos = MutableLiveData<Map<String, Double>>()
 
-    private val _objetivosDieta = MutableLiveData<Map<String, Double>>()
-    val objetivosDieta: LiveData<Map<String, Double>> get() = _objetivosDieta
+    val combinado: LiveData<Pair<Map<String, Double>, Map<String, Double>>> =
+        MediatorLiveData<Pair<Map<String, Double>, Map<String, Double>>>().apply {
+            var consumoActual = emptyMap<String, Double>()
+            var objetivosActual = emptyMap<String, Double>()
+
+            addSource(_consumoDiario) {
+                consumoActual = it
+                value = consumoActual to objetivosActual
+            }
+
+            addSource(_objetivos) {
+                objetivosActual = it
+                value = consumoActual to objetivosActual
+            }
+        }
 
     fun loadDataDaily() {
-        val userId = auth.currentUser?.uid ?: return
-        val fechaHoy = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        loadDataForDate(today)
+    }
 
-        // Obtener consumo diario
+    fun loadDataForDate(fecha: String) {
+        val userId = auth.currentUser?.uid ?: run {
+            Log.e("DashboardViewModel", "No hay usuario autenticado")
+            return
+        }
+
+        // 1. Cargar consumo diario
         firestore.collection("usuarios")
             .document(userId)
             .collection("consumoDiario")
-            .document(fechaHoy)
+            .document(fecha)
             .get()
             .addOnSuccessListener { doc ->
-                val datos = mutableMapOf<String, Double>()
-                for (clave in listOf(
-                    "calorias",
-                    "proteinas",
-                    "carbohidratos",
-                    "grasas",
-                    "azucar",
-                    "agua",
-                    "vitaminaD"
-                )) {
-                    datos[clave] = doc.getDouble(clave) ?: 0.0
-                }
+                val claves = listOf("calorias", "proteinas", "carbos", "grasas", "azucar")
+                val datos = claves.associateWith { doc.getDouble(it) ?: 0.0 }
+                Log.d("DashboardViewModel", "Consumo para $fecha: $datos")
                 _consumoDiario.value = datos
             }
+            .addOnFailureListener { e ->
+                Log.e("DashboardViewModel", "Error al obtener consumo diario", e)
+            }
 
-        // Obtener dieta seleccionada y objetivos
+        // 2. Cargar objetivos de dieta directamente desde usuario.dieta
         firestore.collection("usuarios")
             .document(userId)
             .get()
             .addOnSuccessListener { userDoc ->
-                val dietaId =
-                    userDoc.get("info.dietaSeleccionada") as? String ?: return@addOnSuccessListener
-                firestore.collection("dieta")
-                    .document(dietaId)
-                    .get()
-                    .addOnSuccessListener { dietaDoc ->
-                        val objetivos = mutableMapOf<String, Double>()
-                        for (clave in listOf(
-                            "calorias",
-                            "proteinas",
-                            "carbohidratos",
-                            "grasas",
-                            "azucar",
-                            "agua",
-                            "vitaminaD"
-                        )) {
-                            objetivos[clave] = dietaDoc.getDouble(clave) ?: 0.0
-                        }
-                        _objetivosDieta.value = objetivos
+                val dietaMap = userDoc.get("dieta") as? Map<String, Any> ?: emptyMap()
+
+                fun getDoubleValue(key: String, map: Map<String, Any>): Double {
+                    val value = map[key]
+                    return when(value) {
+                        is Number -> value.toDouble()
+                        is String -> value.toDoubleOrNull() ?: 0.0
+                        else -> 0.0
                     }
+                }
+
+                val objetivos = mapOf(
+                    "calorias" to getDoubleValue("calorias", dietaMap),
+                    "proteinas" to getDoubleValue("proteinas", dietaMap),
+                    "carbos" to getDoubleValue("carbos", dietaMap),
+                    "grasas" to getDoubleValue("grasas", dietaMap),
+                    "azucar" to getDoubleValue("azucar", dietaMap)
+                )
+
+                Log.d("DashboardViewModel", "Objetivos dieta cargados: $objetivos")
+                _objetivos.value = objetivos
             }
+            .addOnFailureListener { e ->
+                Log.e("DashboardViewModel", "Error al obtener objetivos", e)
+            }
+
     }
+
 }

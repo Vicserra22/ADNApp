@@ -1,16 +1,20 @@
 package com.example.adnapp.ui.profile
 
 import android.app.AlertDialog
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.example.adnapp.DietSelectionDialogFragment
+import com.example.adnapp.LoginActivity
 import com.example.adnapp.R
 import com.example.adnapp.databinding.FragmentProfileBinding
 import com.google.firebase.auth.FirebaseAuth
@@ -41,6 +45,8 @@ class ProfileFragment : Fragment() {
 
     private lateinit var tvDietValue: TextView
     private lateinit var btnEditDiet: ImageButton
+
+    private lateinit var btnLogOut: Button
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -77,6 +83,8 @@ class ProfileFragment : Fragment() {
         val blockDiet = view.findViewById<View>(R.id.blockDiet)
         tvDietValue = blockDiet.findViewById(R.id.tvFieldValue)
         btnEditDiet = blockDiet.findViewById(R.id.btnEditField)
+
+        btnLogOut = view.findViewById(R.id.btnLogOut)
 
         loadUserDataFromFirebase()
 
@@ -116,6 +124,18 @@ class ProfileFragment : Fragment() {
                 binding.blockDiet.tvFieldValue.text = nuevaDieta.name
             }.show(parentFragmentManager, "DietSelectionDialog")
         }
+
+        btnLogOut.setOnClickListener{
+            logOut(requireContext())
+        }
+
+
+    }
+    private fun logOut(context: Context) {
+        FirebaseAuth.getInstance().signOut()
+        val intent = Intent(context, LoginActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        context.startActivity(intent)
     }
 
     private fun loadUserDataFromFirebase() {
