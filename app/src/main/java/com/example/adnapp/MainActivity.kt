@@ -3,15 +3,15 @@ package com.example.adnapp
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import com.example.adnapp.databinding.ActivityMainBinding
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import androidx.navigation.findNavController
+import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
 
@@ -21,17 +21,23 @@ class MainActivity : AppCompatActivity() {
     private val auth by lazy { FirebaseAuth.getInstance() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Tema para splash antes de mostrar UI
-        setTheme(R.style.Theme_ADNApp)
         super.onCreate(savedInstanceState)
-        // Esto permite que la ventana se dibuje detrás de todas la tool bar predeterminada
+
+        setTheme(R.style.Theme_ADNApp)
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        // Primero comprobamos si el usuario tiene datos, para evitar mostrar UI si no tiene perfil
+
+        // Inflamos ya la vista (necesario para evitar problemas con NavController)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        // Comprobamos si hay que redirigir al flujo de registro
         checkUserData()
-        //logOut(this)
+
+        Thread.setDefaultUncaughtExceptionHandler { _, e ->
+            Log.e("CRASH", "Error inesperado: ${e.message}", e)
+        }
     }
 
-    //Checkea si el usuario llegó al final del register flow y metió sus datos personales
     private fun checkUserData() {
         val currentUser = auth.currentUser
         if (currentUser != null) {
@@ -41,34 +47,35 @@ class MainActivity : AppCompatActivity() {
             userRef.get()
                 .addOnSuccessListener { document ->
                     if (document.exists()) {
-                        // Usuario tiene datos: muestra la UI de MainActivity
-                        setupUI()
+                        // Usuario tiene datos, continúa con la UI
+                        setupNavigation()
                     } else {
-                        // Usuario no tiene datos: lanzamos flujo registro y cerramos MainActivity
-                        startActivity(Intent(this, DataRegistrationActivity::class.java))
+                        // No tiene datos: lanzamos flujo y cerramos esta Activity
+                        val intent = Intent(this, DataRegistrationActivity::class.java)
+                        startActivity(intent)
                         finish()
                     }
                 }
                 .addOnFailureListener { e ->
                     Toast.makeText(this, "Error al comprobar datos del usuario", Toast.LENGTH_SHORT).show()
-                    // En caso de error también muestra UI para evitar quedar bloqueado
-                    setupUI()
+                    // Incluso si falla, permitimos usar la app
+                    setupNavigation()
                 }
         } else {
-            // No debería llegar aquí porque Splash ya redirige si no hay user loggeado/registrado
             Toast.makeText(this, "Usuario no autenticado", Toast.LENGTH_SHORT).show()
             finish()
         }
     }
 
-    private fun setupUI() {
-        // Inflamos layout y configuramos navegación solo si el usuario tiene perfil
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    private fun setupNavigation() {
+        val navController = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_activity_main)
+            ?.let { it as? NavHostFragment }
+            ?.navController
 
-        val navView: BottomNavigationView = binding.navView
-
-        val navController = findNavController(R.id.nav_host_fragment_activity_main)
+        if (navController == null) {
+            Toast.makeText(this, "No se pudo cargar la navegación", Toast.LENGTH_SHORT).show()
+            return
+        }
 
         val appBarConfiguration = AppBarConfiguration(
             setOf(
@@ -76,7 +83,7 @@ class MainActivity : AppCompatActivity() {
             )
         )
 
-        navView.setupWithNavController(navController)
+        binding.navView.setupWithNavController(navController)
     }
 
     private fun logOut(context: Context) {
@@ -85,5 +92,4 @@ class MainActivity : AppCompatActivity() {
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         context.startActivity(intent)
     }
-
 }
