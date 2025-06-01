@@ -13,7 +13,7 @@ class FoodAdapter(
     private val onItemSelected: (Product) -> Unit
 ) : RecyclerView.Adapter<FoodAdapter.FoodViewHolder>() {
 
-    private var selectedPosition = RecyclerView.NO_POSITION
+    private var selectedPosition: Int = RecyclerView.NO_POSITION
 
     inner class FoodViewHolder(private val binding: ItemFoodBinding) :
         RecyclerView.ViewHolder(binding.root) {
@@ -33,19 +33,20 @@ class FoodAdapter(
                 binding.ivFoodImage.setImageResource(android.R.drawable.ic_menu_report_image)
             }
 
-            val bgRes = if (isSelected) {
-                R.drawable.bg_diet_selected // crea este fondo con borde
-            } else {
-                R.drawable.bg_diet_default // fondo por defecto sin borde
-            }
-            binding.root.setBackgroundResource(bgRes)
+            // Cambiar fondo según si está seleccionado o no
+            binding.root.setBackgroundResource(
+                if (isSelected) R.drawable.bg_diet_selected
+                else R.drawable.bg_diet_default
+            )
 
             binding.root.setOnClickListener {
-                val prevPos = selectedPosition
-                selectedPosition = adapterPosition
-                notifyItemChanged(prevPos)
-                notifyItemChanged(adapterPosition)
-                onItemSelected(product)
+                if (adapterPosition != selectedPosition) {
+                    val previousPosition = selectedPosition
+                    selectedPosition = adapterPosition
+                    notifyItemChanged(previousPosition)
+                    notifyItemChanged(selectedPosition)
+                    onItemSelected(product)
+                }
             }
         }
     }
@@ -56,12 +57,18 @@ class FoodAdapter(
     }
 
     override fun onBindViewHolder(holder: FoodViewHolder, position: Int) {
-        holder.bind(alimentos[position], position == selectedPosition)
+        val product = alimentos[position]
+        holder.bind(product, position == selectedPosition)
     }
 
     override fun getItemCount() = alimentos.size
 
-    fun getSelectedProduct(): Product? = if (selectedPosition != RecyclerView.NO_POSITION) {
-        alimentos[selectedPosition]
-    } else null
+    fun clearSelection() {
+        val previousPosition = selectedPosition
+        selectedPosition = RecyclerView.NO_POSITION
+        notifyItemChanged(previousPosition)
+    }
+
+    fun getSelectedProduct(): Product? =
+        if (selectedPosition != RecyclerView.NO_POSITION) alimentos[selectedPosition] else null
 }

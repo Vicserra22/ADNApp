@@ -1,74 +1,112 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/home_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#E6FFE1"
-    android:padding="24dp">
+    android:padding="16dp">
 
     <TextView
         android:id="@+id/title"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:text="@string/a_ade_los_alimentos_consumidos"
+        android:textColor="@color/adn_black"
         android:textSize="24sp"
         android:textStyle="bold"
-        android:textColor="@color/adn_black"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"/>
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <!-- Barra de búsqueda -->
     <EditText
         android:id="@+id/editTextSearch"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:hint="@string/buscar_producto"
-        android:background="@drawable/edittext_background"
         android:layout_marginTop="16dp"
+        android:background="@drawable/edittext_background"
+        android:hint="@string/buscar_producto"
+        android:inputType="text"
         android:padding="12dp"
         android:textColor="@android:color/black"
         android:textColorHint="#888888"
-        android:inputType="text"
-        app:layout_constraintTop_toBottomOf="@id/title"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/buttonSearch"
-         />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/title" />
 
     <!-- Botón de buscar -->
     <Button
         android:id="@+id/buttonSearch"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:drawableEnd="@drawable/search"
-        android:paddingEnd="30dp"
-        android:elevation="6dp"
-        android:text=""
-        android:drawableTint="@color/white"
-        android:backgroundTint="@color/adn_dark_green"
-        android:textColor="@android:color/white"
         android:layout_marginStart="8dp"
-        app:layout_constraintTop_toTopOf="@id/editTextSearch"
+        android:backgroundTint="@color/adn_dark_green"
+        android:drawableEnd="@drawable/search"
+        android:drawableTint="@color/white"
+        android:elevation="6dp"
+        android:paddingEnd="30dp"
+        android:text=""
+        android:textColor="@android:color/white"
         app:layout_constraintBottom_toBottomOf="@id/editTextSearch"
-        app:layout_constraintStart_toEndOf="@id/editTextSearch"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/editTextSearch"
+        app:layout_constraintTop_toTopOf="@id/editTextSearch"
         tools:ignore="RtlSymmetry" />
 
     <TextView
         android:id="@+id/tvResultCount"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="0 resultados"
-        android:visibility="invisible"
-        android:textColor="@color/adn_dark_green"
-        android:textStyle="bold"
-        android:textSize="16sp"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="4dp"
+        android:text="0 resultados"
         android:textAlignment="center"
-        app:layout_constraintTop_toBottomOf="@id/editTextSearch"/>
+        android:textColor="@color/adn_dark_green"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:visibility="invisible"
+        app:layout_constraintTop_toBottomOf="@id/editTextSearch" />
+
+    <!-- Empty y SearchError state -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/clEmptyState"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintBottom_toTopOf="@id/btnAddFood"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvResultCount">
+
+        <ImageView
+            android:id="@+id/ivImageState"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:clickable="false"
+            android:src="@drawable/adn_logo"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvTextState"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:clickable="false"
+            android:text="Vaya"
+            android:textAlignment="center"
+            android:textColor="@color/placeholder"
+            android:textSize="32sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/ivImageState" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
 
     <!-- Lista de resultados -->
 
@@ -77,11 +115,14 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"
+        android:visibility="invisible"
         app:layout_constraintBottom_toTopOf="@id/btnAddFood"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvResultCount">
+
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerViewResults"
@@ -91,7 +132,8 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="parent"
-            tools:listitem="@layout/item_food" />
+            tools:listitem="@layout/item_food"
+            android:visibility="visible"/>
 
         <View
             android:id="@+id/gradient"
@@ -99,18 +141,16 @@
             android:layout_height="50dp"
             android:layout_gravity="bottom"
             android:background="@drawable/fade_bottom"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            app:layout_constraintBottom_toBottomOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- Botón Añadir alimento -->
     <Button
         android:id="@+id/btnAddFood"
+        android:background="@drawable/btn_background_selector"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="48dp"
-        android:backgroundTint="@color/adn_dark_green"
         android:text="@string/a_adir_alimento"
         android:textColor="@android:color/white"
         app:layout_constraintBottom_toBottomOf="parent"
