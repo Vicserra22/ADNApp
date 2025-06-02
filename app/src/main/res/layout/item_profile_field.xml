@@ -43,7 +43,7 @@
             android:layout_height="wrap_content"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Editar campo"
-            android:src="@drawable/ic_edit"
-            app:tint="@color/adn_black" />
+            android:src="@drawable/edit"
+            app:tint="@color/placeholder" />
     </LinearLayout>
 </androidx.cardview.widget.CardView>
