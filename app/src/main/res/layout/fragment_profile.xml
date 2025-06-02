@@ -49,6 +49,12 @@
         <include
             android:id="@+id/blockDiet"
             layout="@layout/item_profile_field" />
-
+        <Button
+            android:id="@+id/btnLogOut"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="40dp"
+            android:text="@string/cerrar_sesi_n"
+            android:backgroundTint="@color/placeholder" />
     </LinearLayout>
 </ScrollView>

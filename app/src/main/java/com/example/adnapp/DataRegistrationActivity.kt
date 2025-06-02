@@ -15,6 +15,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
+// Flujo de registro de datos
 class DataRegistrationActivity : AppCompatActivity(),
     OnUserInfoCompleteListener,
     OnDietSelectionCompleteListener {

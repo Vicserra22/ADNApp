@@ -44,7 +44,7 @@ class DietSelectionFragment : Fragment() {
         binding.rvDiets.layoutManager = LinearLayoutManager(requireContext())
         binding.rvDiets.adapter = adapter
 
-        // Cargar dietas desde Firebase
+        // Se cargan las dietas desde Firebase
         loadDietsFromFirestore()
 
         binding.btnNextDiet.setOnClickListener {

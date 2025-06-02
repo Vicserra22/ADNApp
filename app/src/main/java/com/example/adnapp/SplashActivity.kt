@@ -6,6 +6,8 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
 
+//Pantalla de carga de inicio
+
 @SuppressLint("CustomSplashScreen")
 class SplashActivity : AppCompatActivity() {
 
@@ -17,7 +19,7 @@ class SplashActivity : AppCompatActivity() {
         val currentUser = auth.currentUser
 
         if (currentUser != null) {
-            // Fuerza refrescar token para verificar que el usuario sigue válido
+            // Refresca token para verificar que el usuario sigue válido
             currentUser.getIdToken(true).addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     // Usuario válido -> MainActivity

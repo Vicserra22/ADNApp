@@ -8,11 +8,22 @@
     android:orientation="vertical"
     android:padding="32dp">
 
+    <TextView
+        android:id="@+id/adn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="64dp"
+        android:text="@string/adn"
+        android:textColor="@color/adn_dark_green"
+        android:textSize="62dp"
+        android:textStyle="bold"
+        tools:ignore="SpUsage" />
+
     <ImageView
         android:id="@+id/logoImage"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
-        android:layout_marginBottom="24dp"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_marginBottom="32dp"
         android:contentDescription="@string/adn"
         android:src="@drawable/adn_logo" />
 
@@ -35,5 +46,6 @@
         android:text="@string/sign_up"
         android:textColor="#4CAF50"
         android:textSize="40dp"
-        tools:ignore="SpUsage" />
+        tools:ignore="SpUsage"
+        android:layout_marginBottom="120dp"/>
 </LinearLayout>

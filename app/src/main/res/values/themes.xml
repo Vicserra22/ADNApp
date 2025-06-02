@@ -2,7 +2,7 @@
 
     <!-- Tema principal -->
     <style name="Theme.ADNApp" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/dark_green</item>
+        <item name="colorPrimary">@color/adn_dark_green</item>
         <item name="colorPrimaryVariant">@color/olive</item>
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorSecondary">@color/adn_dark_green</item>

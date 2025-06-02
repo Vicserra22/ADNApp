@@ -17,10 +17,9 @@ class LoginActivity : AppCompatActivity() {
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Inicializar Firebase Auth
         auth = FirebaseAuth.getInstance()
 
-        // Manejo del botón de inicio de sesión
+
         binding.loginButton.setOnClickListener {
             val email = binding.usernameEditText.text.toString().trim()
             val password = binding.passwordEditText.text.toString().trim()

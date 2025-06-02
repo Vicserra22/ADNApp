@@ -26,7 +26,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="4dp"
             android:fontFamily="sans-serif"
-            android:text="@string/nombre_de_usuario"
+            android:text="@string/correo_de_usuario"
             android:textColor="@color/adn_black"
             android:textSize="16sp"
             android:textStyle="bold"
@@ -39,7 +39,7 @@
             android:layout_marginBottom="16dp"
             android:background="@drawable/edittext_background"
             android:fontFamily="sans-serif"
-            android:hint="@string/ingrese_su_nombre_de_usuario"
+            android:hint="@string/ingrese_su_correo_de_usuario"
             android:padding="12dp"
             android:textColorHint="@color/placeholder" />
 

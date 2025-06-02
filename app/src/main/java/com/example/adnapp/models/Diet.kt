@@ -1,6 +1,6 @@
 package com.example.adnapp.models
 
-
+//Aquí se declara la estructura de la tabla/clase Dieta
 data class Diet(
     val id: String = "",
     val name: String = "",

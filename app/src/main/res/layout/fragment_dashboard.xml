@@ -1,90 +1,279 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#E6FFE1"
-    android:padding="24dp">
+    android:padding="16dp">
 
     <TextView
         android:id="@+id/title"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/dashboard"
+        android:layout_marginTop="8dp"
+        android:text="@string/tus_objetivos_diarios"
+        android:textColor="@color/adn_black"
         android:textSize="24sp"
         android:textStyle="bold"
-        android:textColor="@color/adn_black"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"/>
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Barra de progreso: ejemplo de una -->
-    <TextView
-        android:id="@+id/textProteinas"
+    <ScrollView
+        android:id="@+id/scrollView"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="Proteínas"
-        android:textStyle="bold"
-        android:textSize="14sp"
-        android:textColor="#333333"
-        android:layout_marginTop="32dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/title"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/dataProteinas"/>
+        android:scrollbars="none"
+        android:overScrollMode="never">
 
-    <TextView
-        android:id="@+id/dataProteinas"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:layout_marginEnd="8dp"
-        android:text="45/60"
-        android:textColor="#333333"
-        android:textSize="14sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/textProteinas"
-        app:layout_constraintTop_toBottomOf="@id/title" />
-
-    <ProgressBar
-        android:id="@+id/progressProteinas"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="0dp"
-        android:layout_height="20dp"
-        android:progress="75"
-        android:max="100"
-        android:progressTint="#6FCF97"
-        android:backgroundTint="#CCCCCC"
-        app:layout_constraintTop_toBottomOf="@id/textProteinas"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="8dp" />
-
-    <!-- Añadir más barras como la anterior para calorías, grasas, etc., abajo -->
-    <!-- ... -->
-
-    <!-- Calendario de progreso -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/calendarCard"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:layout_marginBottom="16dp"
-        android:padding="16dp"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="4dp"
-        app:layout_constraintTop_toBottomOf="@id/progressProteinas"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <!-- Sustituye este LinearLayout por un calendario real con librería -->
-        <TextView
+        <LinearLayout
+            android:id="@+id/scrollContent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Aquí irá el calendario con colores"
-            android:textAlignment="center"
-            android:padding="16dp"
-            android:textColor="#666"/>
-    </com.google.android.material.card.MaterialCardView>
+            android:orientation="vertical">
 
+            <!-- Layout de las barras de progreso -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/clProgressBar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp">
+
+                <!--Calorías-->
+                <TextView
+                    android:id="@+id/textCalorias"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="Proteínas"
+                    android:textColor="#333333"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toStartOf="@id/dataCalorias"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/dataCalorias"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:text="@string/total_aim"
+                    android:textAlignment="textEnd"
+                    android:textColor="#333333"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/textCalorias"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ProgressBar
+                    android:id="@+id/progressCalorias"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="0dp"
+                    android:layout_height="20dp"
+                    android:layout_marginTop="8dp"
+                    android:backgroundTint="#CCCCCC"
+                    android:max="100"
+                    android:progress="75"
+                    android:progressTint="#6FCF97"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/textCalorias" />
+
+                <!--Proteínas-->
+                <TextView
+                    android:id="@+id/textProteinas"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:text="Proteínas"
+                    android:textColor="#333333"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toStartOf="@id/dataProteinas"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/progressCalorias" />
+
+                <TextView
+                    android:id="@+id/dataProteinas"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:text="@string/total_aim"
+                    android:textAlignment="textEnd"
+                    android:textColor="#333333"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/textProteinas"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ProgressBar
+                    android:id="@+id/progressProteinas"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="0dp"
+                    android:layout_height="20dp"
+                    android:layout_marginTop="8dp"
+                    android:backgroundTint="#CCCCCC"
+                    android:max="100"
+                    android:progress="75"
+                    android:progressTint="#6FCF97"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/textProteinas" />
+
+                <!--Carbohidratos-->
+                <TextView
+                    android:id="@+id/textCarbohidratos"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:text="Proteínas"
+                    android:textColor="#333333"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toStartOf="@id/dataCarbohidratos"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/progressProteinas" />
+
+                <TextView
+                    android:id="@+id/dataCarbohidratos"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:text="@string/total_aim"
+                    android:textAlignment="textEnd"
+                    android:textColor="#333333"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/textCarbohidratos"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ProgressBar
+                    android:id="@+id/progressCarbohidratos"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="0dp"
+                    android:layout_height="20dp"
+                    android:layout_marginTop="8dp"
+                    android:backgroundTint="#CCCCCC"
+                    android:max="100"
+                    android:progress="75"
+                    android:progressTint="#6FCF97"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/textCarbohidratos" />
+
+                <!--Grasas-->
+                <TextView
+                    android:id="@+id/textGrasas"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:text="Proteínas"
+                    android:textColor="#333333"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toStartOf="@id/dataGrasas"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/progressCarbohidratos" />
+
+                <TextView
+                    android:id="@+id/dataGrasas"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:text="@string/total_aim"
+                    android:textAlignment="textEnd"
+                    android:textColor="#333333"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/textGrasas"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ProgressBar
+                    android:id="@+id/progressGrasas"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="0dp"
+                    android:layout_height="20dp"
+                    android:layout_marginTop="8dp"
+                    android:backgroundTint="#CCCCCC"
+                    android:max="100"
+                    android:progress="75"
+                    android:progressTint="#6FCF97"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/textGrasas" />
+
+                <!--Azúcar-->
+                <TextView
+                    android:id="@+id/textAzucar"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:text="Proteínas"
+                    android:textColor="#333333"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toStartOf="@id/dataAzucar"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/progressGrasas" />
+
+                <TextView
+                    android:id="@+id/dataAzucar"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:text="@string/total_aim"
+                    android:textAlignment="textEnd"
+                    android:textColor="#333333"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/textAzucar"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ProgressBar
+                    android:id="@+id/progressAzucar"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="0dp"
+                    android:layout_height="20dp"
+                    android:layout_marginTop="8dp"
+                    android:backgroundTint="#CCCCCC"
+                    android:max="100"
+                    android:progress="75"
+                    android:progressTint="#6FCF97"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/textAzucar" />
+
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- Calendario -->
+            <com.prolificinteractive.materialcalendarview.MaterialCalendarView
+                android:id="@+id/materialCalendarView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                app:mcv_showOtherDates="all"
+                app:mcv_selectionColor="#6FCF97"
+                app:mcv_weekDayTextAppearance="@style/TextAppearance.AppCompat.Medium"
+                app:mcv_dateTextAppearance="@style/TextAppearance.AppCompat.Small"/>
+
+
+        </LinearLayout>
+    </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+
+
+
+

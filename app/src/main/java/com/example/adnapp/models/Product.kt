@@ -1,5 +1,7 @@
 package com.example.adnapp.models
 
+//Aquí se declara la estructura de la tabla/clase alimentoIngerido
+
 import com.google.gson.annotations.SerializedName
 
 data class Product(

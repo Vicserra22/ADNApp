@@ -16,6 +16,8 @@ material = "1.12.0"
 constraintlayout = "2.2.1"
 lifecycleLivedataKtx = "2.9.0"
 lifecycleViewmodelKtx = "2.9.0"
+materialCalendarview = "2.0.0"
+materialCalendarviewVersion = "1.4.3"
 navigationFragmentKtx = "2.9.0"
 navigationUiKtx = "2.9.0"
 picasso = "2.8"
@@ -44,6 +46,7 @@ androidx-lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecy
 androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }
 androidx-navigation-fragment-ktx = { group = "androidx.navigation", name = "navigation-fragment-ktx", version.ref = "navigationFragmentKtx" }
 androidx-navigation-ui-ktx = { group = "androidx.navigation", name = "navigation-ui-ktx", version.ref = "navigationUiKtx" }
+material-calendarview-v143 = { module = "com.prolificinteractive:material-calendarview", version.ref = "materialCalendarviewVersion" }
 picasso = { module = "com.squareup.picasso:picasso", version.ref = "picasso" }
 google-firebase-auth-ktx = { group = "com.google.firebase", name = "firebase-auth-ktx", version.ref = "firebaseAuthKtx" }
 firebase-firestore-ktx = { group = "com.google.firebase", name = "firebase-firestore-ktx", version.ref = "firebaseFirestoreKtx" }

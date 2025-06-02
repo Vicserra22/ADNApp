@@ -57,6 +57,7 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     implementation(libs.androidx.core.splashscreen.v100)
     implementation(libs.picasso)
+
     // Import the Firebase BoM
     implementation(platform(libs.firebase.bom.v33130))
 
@@ -69,8 +70,6 @@ dependencies {
     implementation(libs.retrofit)
     implementation (libs.gson)
 
-//// Glide (para cargar imágenes en el RecyclerView)
-//    implementation ('com.github.bumptech.glide:glide:4.16.0')
-//    kapt 'com.github.bumptech.glide:compiler:4.16.0'
+    implementation (libs.material.calendarview.v143)
 
 }
