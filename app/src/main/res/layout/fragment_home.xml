@@ -34,7 +34,8 @@
         android:textColorHint="#888888"
         app:layout_constraintEnd_toStartOf="@+id/buttonSearch"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/title" />
+        app:layout_constraintTop_toBottomOf="@id/title"
+        tools:ignore="Autofill" />
 
     <!-- Botón de buscar -->
     <Button
@@ -61,7 +62,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="4dp"
-        android:text="0 resultados"
+        android:text="@string/_0_resultados"
         android:textAlignment="center"
         android:textColor="@color/adn_dark_green"
         android:textSize="16sp"
@@ -86,6 +87,7 @@
             android:layout_width="200dp"
             android:layout_height="200dp"
             android:clickable="false"
+            android:contentDescription="@string/emptystate"
             android:src="@drawable/adn_logo"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -98,10 +100,10 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:clickable="false"
-            android:text="Vaya"
+            android:text="@string/a_ade_los_productos_que_te_vas_a_comer"
             android:textAlignment="center"
             android:textColor="@color/placeholder"
-            android:textSize="32sp"
+            android:textSize="28sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/ivImageState" />
@@ -148,9 +150,10 @@
     <!-- Botón Añadir alimento -->
     <Button
         android:id="@+id/btnAddFood"
-        android:background="@drawable/btn_background_selector"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/btn_background_selector"
         android:text="@string/a_adir_alimento"
         android:textColor="@android:color/white"
         app:layout_constraintBottom_toBottomOf="parent"

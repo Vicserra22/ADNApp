@@ -14,8 +14,8 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.example.adnapp.DietSelectionDialogFragment
-import com.example.adnapp.LoginActivity
 import com.example.adnapp.R
+import com.example.adnapp.WelcomeActivity
 import com.example.adnapp.databinding.FragmentProfileBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -133,7 +133,7 @@ class ProfileFragment : Fragment() {
     }
     private fun logOut(context: Context) {
         FirebaseAuth.getInstance().signOut()
-        val intent = Intent(context, LoginActivity::class.java)
+        val intent = Intent(context, WelcomeActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         context.startActivity(intent)
     }

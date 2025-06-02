@@ -84,7 +84,7 @@ class FoodFragment : Fragment() {
         }
     }
 
-    @SuppressLint("SetTextI18n")
+    @SuppressLint("SetTextI18n", "NotifyDataSetChanged")
     private fun observeViewModel() {
         viewModel.resultados.observe(viewLifecycleOwner) { lista ->
             products.clear()
@@ -102,11 +102,10 @@ class FoodFragment : Fragment() {
                 binding.tvResultCount.visibility = View.GONE
                 showEmptyState(
                     "No se encontraron resultados para tu búsqueda.",
-                    R.drawable.adn_logo
+                    R.drawable.adn2
                 )
             }
 
-            // Botón deshabilitado por defecto
             binding.btnAddFood.isEnabled = false
         }
 
@@ -114,7 +113,7 @@ class FoodFragment : Fragment() {
             if (!mensajeError.isNullOrEmpty()) {
                 binding.recyclerViewResults.visibility = View.GONE
                 binding.tvResultCount.visibility = View.GONE
-                showEmptyState(mensajeError, R.drawable.adn_logo)
+                showEmptyState(mensajeError, R.drawable.adn1)
                 binding.btnAddFood.isEnabled = false
             }
         }
@@ -171,13 +170,13 @@ class FoodFragment : Fragment() {
 
         val db = Firebase.firestore
 
-        // 1) Guardar alimento en alimentosIngeridos
+        // 1) Guarda alimento en alimentosIngeridos
         db.collection("usuarios").document(userId)
             .collection("alimentosIngeridos").add(alimentoMap)
             .addOnSuccessListener {
                 Toast.makeText(requireContext(), "Alimento añadido", Toast.LENGTH_SHORT).show()
 
-                // 2) Actualizar consumoDiario
+                // 2) Actualiza consumoDiario
                 val docRef = db.collection("usuarios")
                     .document(userId)
                     .collection("consumoDiario")
@@ -205,7 +204,7 @@ class FoodFragment : Fragment() {
                         docRef.set(nuevosDatos)
 
                     } else {
-                        // Documento no existe: crear nuevo con valores del alimento
+                        // Si es un nuevo día: crea uno nuevo con valores del alimento
                         val nuevosDatos = mapOf(
                             "calorias" to (nutriments?.calories ?: 0.0) * cantidad / 100,
                             "proteinas" to (nutriments?.proteins ?: 0.0) * cantidad / 100,
@@ -224,7 +223,7 @@ class FoodFragment : Fragment() {
 
     private fun setupRecyclerView() {
         adapter = FoodAdapter(products) {
-            // Producto seleccionado cambia dentro del adapter
+            // El producto seleccionado cambia dentro del adapter
             binding.btnAddFood.isEnabled = true
         }
 

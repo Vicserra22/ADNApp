@@ -17,10 +17,8 @@ class RegisterActivity : AppCompatActivity() {
         binding = ActivityRegisterBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Inicializar Firebase Auth
         auth = FirebaseAuth.getInstance()
 
-        // Manejo del botón de registro
         binding.registerButton.setOnClickListener {
             val email = binding.usernameEditText.text.toString().trim()
             val password = binding.passwordEditText.text.toString().trim()

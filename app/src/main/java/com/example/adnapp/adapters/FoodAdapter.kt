@@ -33,7 +33,7 @@ class FoodAdapter(
                 binding.ivFoodImage.setImageResource(android.R.drawable.ic_menu_report_image)
             }
 
-            // Cambiar fondo según si está seleccionado o no
+            // Cambia el fondo según si está seleccionado o no
             binding.root.setBackgroundResource(
                 if (isSelected) R.drawable.bg_diet_selected
                 else R.drawable.bg_diet_default

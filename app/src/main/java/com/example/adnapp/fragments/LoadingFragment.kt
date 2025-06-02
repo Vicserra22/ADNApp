@@ -11,7 +11,7 @@ class LoadingFragment : DialogFragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        isCancelable = false // Evita que el usuario lo cierre manualmente
+        isCancelable = false
     }
 
     override fun onCreateView(
@@ -19,11 +19,6 @@ class LoadingFragment : DialogFragment() {
         savedInstanceState: Bundle?,
     ): View {
         return inflater.inflate(R.layout.fragment_loading, container, false)
-    }
-
-    override fun onStart() {
-        super.onStart()
-       // dialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
     }
 
     companion object {

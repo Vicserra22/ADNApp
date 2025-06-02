@@ -4,6 +4,8 @@ package com.example.adnapp
 import androidx.lifecycle.ViewModel
 import com.example.adnapp.models.Diet
 
+//Clase necesaria para manejar datos y guardarlos entre fragmentos
+
 data class UserInfoData(
     val name: String,
     val age: Int,

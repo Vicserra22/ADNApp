@@ -36,13 +36,14 @@ class DashboardViewModel : ViewModel() {
         loadDataForDate(today)
     }
 
+    //Carga los alimentos guardados:
     fun loadDataForDate(fecha: String) {
         val userId = auth.currentUser?.uid ?: run {
             Log.e("DashboardViewModel", "No hay usuario autenticado")
             return
         }
 
-        // 1. Cargar consumo diario
+        // 1. Carga consumo diario
         firestore.collection("usuarios")
             .document(userId)
             .collection("consumoDiario")
@@ -58,7 +59,7 @@ class DashboardViewModel : ViewModel() {
                 Log.e("DashboardViewModel", "Error al obtener consumo diario", e)
             }
 
-        // 2. Cargar objetivos de dieta directamente desde usuario.dieta
+        // 2. Carga objetivos de dieta directamente desde usuario.dieta
         firestore.collection("usuarios")
             .document(userId)
             .get()

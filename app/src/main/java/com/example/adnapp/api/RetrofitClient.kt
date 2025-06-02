@@ -12,7 +12,7 @@ object RetrofitClient {
     private val okHttpClient = OkHttpClient.Builder()
         .connectTimeout(10, TimeUnit.SECONDS) // Espera para conectarse al servidor
         .readTimeout(60, TimeUnit.SECONDS)    // Espera para leer los datos
-        .writeTimeout(60, TimeUnit.SECONDS)   // Espera para escribir datos (si fuera necesario)
+        .writeTimeout(60, TimeUnit.SECONDS)   // Espera para escribir datos
         .build()
 
     private val retrofit by lazy {

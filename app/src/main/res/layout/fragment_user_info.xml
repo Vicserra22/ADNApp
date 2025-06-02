@@ -2,35 +2,46 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="24dp">
+    android:padding="24dp"
+    android:scrollbars="none">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="8dp"
         android:orientation="vertical">
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/ingrese_sus_datos"
+            android:textStyle="bold"
+            android:textSize="24sp"
+            android:textColor="@color/adn_black"/>
 
         <!-- Nombre -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="@string/nombre_de_usuario"
+            android:layout_marginTop="36dp"
+            android:text="@string/nombre_usuario"
             android:textSize="16sp"
             android:textColor="@color/adn_black"/>
 
         <EditText
             android:id="@+id/etName"
-            android:hint="@string/ingrese_su_nombre_de_usuario"
+            android:autofillHints=""
+            android:hint="@string/ingrese_su_nombre_o_alias"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:inputType="text" />
 
         <!-- Edad -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="36dp"
             android:text="@string/edad"
             android:textSize="16sp"
             android:textColor="@color/adn_black"/>
@@ -39,6 +50,7 @@
             android:id="@+id/etAge"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:autofillHints=""
             android:hint="@string/introduce_tu_edad"
             android:inputType="number" />
 
@@ -46,7 +58,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="36dp"
             android:text="@string/sexo"
             android:textSize="16sp"
             android:textColor="@color/adn_black"/>
@@ -75,7 +87,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="36dp"
             android:text="@string/altura_cm"
             android:textSize="16sp"
             android:textColor="@color/adn_black"/>
@@ -91,7 +103,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="36dp"
             android:text="@string/peso_kg"
             android:textSize="16sp"
             android:textColor="@color/adn_black"/>
@@ -108,7 +120,7 @@
             android:id="@+id/btnNextUserInfo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="48dp"
             android:enabled="true"
             android:text="@string/siguiente"
             android:backgroundTint="@color/adn_dark_green"
