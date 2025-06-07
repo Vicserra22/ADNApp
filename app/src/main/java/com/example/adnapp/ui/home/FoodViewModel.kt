@@ -51,7 +51,7 @@ class FoodViewModel : ViewModel() {
                     Log.d("FoodViewModel", "Productos válidos filtrados: ${filtrados.size}")
 
                     if (filtrados.isEmpty()) {
-                        _error.value = "No se encontraron alimentos válidos."
+                        _error.value = "No se encontraron alimentos para tu búsqueda."
                     } else {
                         _resultados.value = filtrados
                     }
@@ -69,7 +69,5 @@ class FoodViewModel : ViewModel() {
             }
         }
     }
-
-
 
 }

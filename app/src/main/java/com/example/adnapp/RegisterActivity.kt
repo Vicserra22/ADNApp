@@ -29,7 +29,7 @@ class RegisterActivity : AppCompatActivity() {
                         if (task.isSuccessful) {
                             Toast.makeText(this, "Registro exitoso", Toast.LENGTH_SHORT).show()
                             // Redirigir a la actividad principal tras el registro
-                            startActivity(Intent(this, MainActivity::class.java))
+                            startActivity(Intent(this, DataRegistrationActivity::class.java))
                             finish()
                         } else {
                             Toast.makeText(this, "Error: ${task.exception?.message}", Toast.LENGTH_LONG).show()

@@ -30,7 +30,7 @@ class FoodAdapter(
             if (!product.imageUrl.isNullOrEmpty()) {
                 Picasso.get().load(product.imageUrl).into(binding.ivFoodImage)
             } else {
-                binding.ivFoodImage.setImageResource(android.R.drawable.ic_menu_report_image)
+                binding.ivFoodImage.setImageResource(R.drawable.adn_logo)
             }
 
             // Cambia el fondo según si está seleccionado o no

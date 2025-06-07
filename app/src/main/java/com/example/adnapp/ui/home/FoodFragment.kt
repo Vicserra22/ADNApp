@@ -45,6 +45,8 @@ class FoodFragment : Fragment() {
         setupRecyclerView()
         setupListeners()
         observeViewModel()
+        binding.clRecycledView.visibility = View.INVISIBLE
+        binding.clEmptyState.visibility = View.VISIBLE
 
         viewModel.isLoading.observe(viewLifecycleOwner) { loading ->
             if (loading) {
@@ -100,10 +102,6 @@ class FoodFragment : Fragment() {
             } else {
                 binding.recyclerViewResults.visibility = View.GONE
                 binding.tvResultCount.visibility = View.GONE
-                showEmptyState(
-                    "No se encontraron resultados para tu búsqueda.",
-                    R.drawable.adn2
-                )
             }
 
             binding.btnAddFood.isEnabled = false
@@ -113,7 +111,7 @@ class FoodFragment : Fragment() {
             if (!mensajeError.isNullOrEmpty()) {
                 binding.recyclerViewResults.visibility = View.GONE
                 binding.tvResultCount.visibility = View.GONE
-                showEmptyState(mensajeError, R.drawable.adn1)
+                showEmptyState(mensajeError, R.drawable.adn5)
                 binding.btnAddFood.isEnabled = false
             }
         }

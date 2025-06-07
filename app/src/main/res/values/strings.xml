@@ -42,7 +42,7 @@
     <string name="total_aim">{{total}}/{{aim}}</string>
     <string name="cerrar_sesi_n">Cerrar sesión</string>
     <string name="door">🚪</string>
-    <string name="a_ade_los_productos_que_te_vas_a_comer">Añade los productos\nque vayas a consumir</string>
+    <string name="a_ade_los_productos_que_te_vas_a_comer">Añade los productos\ndesde el buscador</string>
     <string name="ingrese_sus_datos">Ingrese sus datos</string>
     <string name="nombre_usuario">Nombre de usuario</string>
     <string name="ingrese_su_nombre_o_alias">Ingrese su nombre o alias</string>

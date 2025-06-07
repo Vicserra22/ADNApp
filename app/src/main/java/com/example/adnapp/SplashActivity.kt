@@ -3,39 +3,76 @@ package com.example.adnapp
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
-
-//Pantalla de carga de inicio
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 
 @SuppressLint("CustomSplashScreen")
 class SplashActivity : AppCompatActivity() {
 
+    private val auth by lazy { FirebaseAuth.getInstance() }
+    private val TAG = "SplashActivity"
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_splash) // Aquí tienes tu splash visual
+        setContentView(R.layout.activity_splash)
 
-        val auth = FirebaseAuth.getInstance()
+        Log.d(TAG, "onCreate - Iniciando Splash")
+
         val currentUser = auth.currentUser
+        Log.d(TAG, "Usuario actual: $currentUser")
 
         if (currentUser != null) {
-            // Refresca token para verificar que el usuario sigue válido
             currentUser.getIdToken(true).addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    // Usuario válido -> MainActivity
-                    startActivity(Intent(this, MainActivity::class.java))
-                    finish()
+                    Log.d(TAG, "Token válido, comprobando datos de usuario")
+                    checkUserData(currentUser.uid)
                 } else {
-                    // Token inválido o error -> cerrar sesión y Welcome
+                    Log.e(TAG, "Token inválido o error al obtener token", task.exception)
                     auth.signOut()
-                    startActivity(Intent(this, WelcomeActivity::class.java))
-                    finish()
+                    goToWelcome()
                 }
             }
         } else {
-            // No hay usuario -> WelcomeActivity
-            startActivity(Intent(this, WelcomeActivity::class.java))
-            finish()
+            Log.d(TAG, "Usuario no autenticado, yendo a pantalla de bienvenida")
+            goToWelcome()
         }
+    }
+
+    private fun checkUserData(uid: String) {
+        Log.d(TAG, "checkUserData - uid: $uid")
+        val db = Firebase.firestore
+        val userRef = db.collection("usuarios").document(uid)
+
+        userRef.get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    Log.d(TAG, "Documento usuario existe: ${document.data}")
+                    goToMain()
+                } else {
+                    Log.d(TAG, "Documento usuario NO existe, ir a registro de datos")
+                    startActivity(Intent(this, DataRegistrationActivity::class.java))
+                }
+                finish()
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Error accediendo a Firestore", e)
+                goToWelcome()
+            }
+    }
+
+    private fun goToMain() {
+        val intent = Intent(this, MainActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
+    }
+
+    private fun goToWelcome() {
+        Log.d(TAG, "Redirigiendo a WelcomeActivity")
+        startActivity(Intent(this, WelcomeActivity::class.java))
+        finish()
     }
 }
