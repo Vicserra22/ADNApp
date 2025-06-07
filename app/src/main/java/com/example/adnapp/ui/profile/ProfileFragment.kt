@@ -28,21 +28,27 @@ class ProfileFragment : Fragment() {
     private val db = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
 
+    private lateinit var tvNameLabel: TextView
     private lateinit var tvNameValue: TextView
     private lateinit var btnEditName: ImageButton
 
+    private lateinit var tvGenderLabel: TextView
     private lateinit var tvGenderValue: TextView
     private lateinit var btnEditGender: ImageButton
 
+    private lateinit var tvAgeLabel: TextView
     private lateinit var tvAgeValue: TextView
     private lateinit var btnEditAge: ImageButton
 
+    private lateinit var tvWeighLabel: TextView
     private lateinit var tvWeightValue: TextView
     private lateinit var btnEditWeight: ImageButton
 
+    private lateinit var tvHeightLabel: TextView
     private lateinit var tvHeightValue: TextView
     private lateinit var btnEditHeight: ImageButton
 
+    private lateinit var tvDietLabel: TextView
     private lateinit var tvDietValue: TextView
     private lateinit var btnEditDiet: ImageButton
 
@@ -61,26 +67,32 @@ class ProfileFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         val blockName = view.findViewById<View>(R.id.blockName)
+        tvNameLabel = blockName.findViewById(R.id.tvFieldLabel)
         tvNameValue = blockName.findViewById(R.id.tvFieldValue)
         btnEditName = blockName.findViewById(R.id.btnEditField)
 
         val blockGender = view.findViewById<View>(R.id.blockGender)
+        tvGenderLabel = blockGender.findViewById(R.id.tvFieldLabel)
         tvGenderValue = blockGender.findViewById(R.id.tvFieldValue)
         btnEditGender = blockGender.findViewById(R.id.btnEditField)
 
         val blockAge = view.findViewById<View>(R.id.blockAge)
+        tvAgeLabel = blockAge.findViewById(R.id.tvFieldLabel)
         tvAgeValue = blockAge.findViewById(R.id.tvFieldValue)
         btnEditAge = blockAge.findViewById(R.id.btnEditField)
 
         val blockWeight = view.findViewById<View>(R.id.blockWeight)
+        tvWeighLabel = blockWeight.findViewById(R.id.tvFieldLabel)
         tvWeightValue = blockWeight.findViewById(R.id.tvFieldValue)
         btnEditWeight = blockWeight.findViewById(R.id.btnEditField)
 
         val blockHeight = view.findViewById<View>(R.id.blockHeight)
+        tvHeightLabel = blockHeight.findViewById(R.id.tvFieldLabel)
         tvHeightValue = blockHeight.findViewById(R.id.tvFieldValue)
         btnEditHeight = blockHeight.findViewById(R.id.btnEditField)
 
         val blockDiet = view.findViewById<View>(R.id.blockDiet)
+        tvDietLabel = blockDiet.findViewById(R.id.tvFieldLabel)
         tvDietValue = blockDiet.findViewById(R.id.tvFieldValue)
         btnEditDiet = blockDiet.findViewById(R.id.btnEditField)
 
@@ -128,6 +140,14 @@ class ProfileFragment : Fragment() {
         btnLogOut.setOnClickListener{
             logOut(requireContext())
         }
+
+        tvNameLabel.text = getString(R.string.nombre)
+        tvGenderLabel.text = getString(R.string.g_nero)
+        tvAgeLabel.text = getString(R.string.edad)
+        tvWeighLabel.text = getString(R.string.peso_kg)
+        tvHeightLabel.text = getString(R.string.altura_cm)
+        tvDietLabel.text = getString(R.string.dieta_seleccionada)
+
 
 
     }

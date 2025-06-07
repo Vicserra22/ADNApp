@@ -2,14 +2,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/light_green"
-    android:padding="24dp">
+    android:padding="24dp"
+    android:scrollbars="none">
 
     <LinearLayout
         android:layout_marginHorizontal="16dp"
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        >
+        android:padding="4dp">
 
         <TextView
             android:layout_width="match_parent"
@@ -18,7 +19,7 @@
             android:textSize="24sp"
             android:textStyle="bold"
             android:textColor="@color/adn_black"
-            android:layout_marginBottom="16dp"/>
+            android:layout_marginBottom="24dp"/>
 
         <!-- Nombre -->
         <include
@@ -53,7 +54,8 @@
             android:id="@+id/btnLogOut"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="40dp"
+            android:layout_marginTop="32dp"
+            android:layout_marginBottom="8dp"
             android:text="@string/cerrar_sesi_n"
             android:backgroundTint="@color/placeholder" />
     </LinearLayout>

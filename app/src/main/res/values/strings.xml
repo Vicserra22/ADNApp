@@ -48,4 +48,12 @@
     <string name="ingrese_su_nombre_o_alias">Ingrese su nombre o alias</string>
     <string name="_0_resultados">0 resultados</string>
     <string name="emptystate">emptyState</string>
+    <string name="prote_nas">Proteínas</string>
+    <string name="calor_as">Calorías</string>
+    <string name="carbohidratos">Carbohidratos</string>
+    <string name="grasas">Grasas</string>
+    <string name="az_car">Azúcar</string>
+    <string name="nombre">Nombre</string>
+    <string name="g_nero">Género</string>
+    <string name="dieta_seleccionada">Dieta seleccionada</string>
 </resources>

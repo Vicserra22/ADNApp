@@ -3,9 +3,10 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_marginBottom="12dp"
     app:cardCornerRadius="12dp"
-    app:cardElevation="2dp">
+    android:background="@drawable/bg_diet_default">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -22,19 +23,19 @@
 
             <TextView
                 android:id="@+id/tvFieldLabel"
-                android:text="Etiqueta"
                 android:textSize="14sp"
                 android:textColor="@color/placeholder"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                tools:text="Etiqueta"/>
 
             <TextView
                 android:id="@+id/tvFieldValue"
-                android:text="Valor"
                 android:textSize="16sp"
                 android:textColor="@color/adn_black"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                tools:text="Valor"/>
         </LinearLayout>
 
         <ImageButton
@@ -42,8 +43,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Editar campo"
+            android:contentDescription="@null"
             android:src="@drawable/edit"
-            app:tint="@color/placeholder" />
+            app:tint="@color/adn_green" />
     </LinearLayout>
 </androidx.cardview.widget.CardView>
