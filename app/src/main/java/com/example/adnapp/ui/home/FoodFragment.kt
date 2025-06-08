@@ -11,7 +11,7 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.adnapp.R
@@ -23,13 +23,12 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.util.*
 
 class FoodFragment : Fragment() {
 
     private lateinit var binding: FragmentHomeBinding
-    private val viewModel: FoodViewModel by viewModels()
+    private val viewModel: FoodViewModel by activityViewModels()
     private lateinit var adapter: FoodAdapter
     private val products = mutableListOf<Product>()
 
@@ -45,8 +44,20 @@ class FoodFragment : Fragment() {
         setupRecyclerView()
         setupListeners()
         observeViewModel()
-        binding.clRecycledView.visibility = View.INVISIBLE
-        binding.clEmptyState.visibility = View.VISIBLE
+
+        if (viewModel.resultados.value.isNullOrEmpty()) {
+            binding.clRecycledView.visibility = View.INVISIBLE
+            binding.clEmptyState.visibility = View.VISIBLE
+        } else {
+            binding.clRecycledView.visibility = View.VISIBLE
+            products.clear()
+            viewModel.resultados.value?.let { products.addAll(it) }
+            adapter.notifyDataSetChanged()
+            binding.tvResultCount.text = "${products.size} resultado${if (products.size == 1) "" else "s"}"
+            binding.tvResultCount.visibility = View.VISIBLE
+            binding.recyclerViewResults.visibility = View.VISIBLE
+            binding.clEmptyState.visibility = View.GONE
+        }
 
         viewModel.isLoading.observe(viewLifecycleOwner) { loading ->
             if (loading) {
@@ -64,14 +75,12 @@ class FoodFragment : Fragment() {
         binding.buttonSearch.setOnClickListener {
             val query = binding.editTextSearch.text.toString().trim()
             if (query.isNotEmpty()) {
-                adapter.clearSelection() // deselect everything
+                adapter.clearSelection()
                 binding.btnAddFood.isEnabled = false
-
                 viewModel.buscarAlimentos(query)
                 binding.clRecycledView.visibility = View.VISIBLE
             } else {
-                Toast.makeText(requireContext(), "Escribe algo para buscar", Toast.LENGTH_SHORT)
-                    .show()
+                Toast.makeText(requireContext(), "Escribe algo para buscar", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -80,8 +89,7 @@ class FoodFragment : Fragment() {
             if (productoSeleccionado != null) {
                 showQuantityDialog(productoSeleccionado)
             } else {
-                Toast.makeText(requireContext(), "Selecciona un producto", Toast.LENGTH_SHORT)
-                    .show()
+                Toast.makeText(requireContext(), "Selecciona un producto", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -102,6 +110,7 @@ class FoodFragment : Fragment() {
             } else {
                 binding.recyclerViewResults.visibility = View.GONE
                 binding.tvResultCount.visibility = View.GONE
+                binding.clEmptyState.visibility = View.VISIBLE
             }
 
             binding.btnAddFood.isEnabled = false
@@ -109,10 +118,7 @@ class FoodFragment : Fragment() {
 
         viewModel.error.observe(viewLifecycleOwner) { mensajeError ->
             if (!mensajeError.isNullOrEmpty()) {
-                binding.recyclerViewResults.visibility = View.GONE
-                binding.tvResultCount.visibility = View.GONE
                 showEmptyState(mensajeError, R.drawable.adn5)
-                binding.btnAddFood.isEnabled = false
             }
         }
     }
@@ -137,11 +143,7 @@ class FoodFragment : Fragment() {
                 if (cantidad != null && cantidad > 0) {
                     saveIntoFirebase(product, cantidad)
                 } else {
-                    Toast.makeText(
-                        requireContext(),
-                        "Introduce una cantidad válida",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    Toast.makeText(requireContext(), "Introduce una cantidad válida", Toast.LENGTH_SHORT).show()
                     showQuantityDialog(product)
                 }
             }
@@ -167,49 +169,31 @@ class FoodFragment : Fragment() {
         )
 
         val db = Firebase.firestore
-
-        // 1) Guarda alimento en alimentosIngeridos
         db.collection("usuarios").document(userId)
             .collection("alimentosIngeridos").add(alimentoMap)
             .addOnSuccessListener {
                 Toast.makeText(requireContext(), "Alimento añadido", Toast.LENGTH_SHORT).show()
 
-                // 2) Actualiza consumoDiario
                 val docRef = db.collection("usuarios")
                     .document(userId)
                     .collection("consumoDiario")
                     .document(fecha)
 
                 docRef.get().addOnSuccessListener { document ->
+                    val nuevosDatos = mapOf(
+                        "calorias" to (nutriments?.calories ?: 0.0) * cantidad / 100,
+                        "proteinas" to (nutriments?.proteins ?: 0.0) * cantidad / 100,
+                        "carbos" to (nutriments?.carbs ?: 0.0) * cantidad / 100,
+                        "grasas" to (nutriments?.fat ?: 0.0) * cantidad / 100,
+                        "azucar" to (nutriments?.sugars ?: 0.0) * cantidad / 100
+                    )
                     if (document.exists()) {
-                        // Documento existente: sumar valores
-                        val caloriasActual = document.getDouble("calorias") ?: 0.0
-                        val proteinasActual = document.getDouble("proteinas") ?: 0.0
-                        val carbosActual = document.getDouble("carbos") ?: 0.0
-                        val grasasActual = document.getDouble("grasas") ?: 0.0
-                        val azucarActual = document.getDouble("azucar") ?: 0.0
-
-                        val nuevosDatos = mapOf(
-                            "calorias" to caloriasActual + (nutriments?.calories
-                                ?: 0.0) * cantidad / 100,
-                            "proteinas" to proteinasActual + (nutriments?.proteins
-                                ?: 0.0) * cantidad / 100,
-                            "carbos" to carbosActual + (nutriments?.carbs ?: 0.0) * cantidad / 100,
-                            "grasas" to grasasActual + (nutriments?.fat ?: 0.0) * cantidad / 100,
-                            "azucar" to azucarActual + (nutriments?.sugars ?: 0.0) * cantidad / 100
-                        )
-
-                        docRef.set(nuevosDatos)
-
+                        val actuales = document.data ?: return@addOnSuccessListener
+                        val sumados = nuevosDatos.mapValues { (key, value) ->
+                            (actuales[key] as? Double ?: 0.0) + value
+                        }
+                        docRef.set(sumados)
                     } else {
-                        // Si es un nuevo día: crea uno nuevo con valores del alimento
-                        val nuevosDatos = mapOf(
-                            "calorias" to (nutriments?.calories ?: 0.0) * cantidad / 100,
-                            "proteinas" to (nutriments?.proteins ?: 0.0) * cantidad / 100,
-                            "carbos" to (nutriments?.carbs ?: 0.0) * cantidad / 100,
-                            "grasas" to (nutriments?.fat ?: 0.0) * cantidad / 100,
-                            "azucar" to (nutriments?.sugars ?: 0.0) * cantidad / 100
-                        )
                         docRef.set(nuevosDatos)
                     }
                 }
@@ -221,7 +205,6 @@ class FoodFragment : Fragment() {
 
     private fun setupRecyclerView() {
         adapter = FoodAdapter(products) {
-            // El producto seleccionado cambia dentro del adapter
             binding.btnAddFood.isEnabled = true
         }
 
@@ -232,10 +215,8 @@ class FoodFragment : Fragment() {
         binding.recyclerViewResults.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
-
                 val lastVisibleItem = layoutManager.findLastCompletelyVisibleItemPosition()
                 val totalItemCount = adapter.itemCount
-
                 binding.gradient.isVisible = lastVisibleItem < totalItemCount - 1
             }
         })

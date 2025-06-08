@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.adnapp.databinding.FragmentDashboardBinding
+import com.prolificinteractive.materialcalendarview.CalendarDay
 
 class DashboardFragment : Fragment() {
 
@@ -24,7 +25,6 @@ class DashboardFragment : Fragment() {
     ): View {
         _binding = FragmentDashboardBinding.inflate(inflater, container, false)
         viewModel = ViewModelProvider(this)[DashboardViewModel::class.java]
-        viewModel.loadDataDaily()  // Datos del día actual
 
         observeViewModel()
 
@@ -41,10 +41,29 @@ class DashboardFragment : Fragment() {
                     "%04d-%02d-%02d", date.year, date.month + 1, date.day
                 )
                 Log.d("DashboardFragment", "Fecha seleccionada: $fechaSeleccionada")
-
                 viewModel.loadDataForDate(fechaSeleccionada)
             }
         }
+
+        val today = CalendarDay.today()
+        binding.materialCalendarView.setDateSelected(today, true)
+
+        val fechaActual = String.format(
+            "%04d-%02d-%02d", today.year, today.month + 1, today.day
+        )
+        viewModel.loadDataForDate(fechaActual)
+
+        viewModel.decoraciones.observe(viewLifecycleOwner) { mapaColores ->
+            binding.materialCalendarView.removeDecorators()
+
+            mapaColores.entries.groupBy { it.value }.forEach { (color, dias) ->
+                val diasSet = dias.map { it.key }.toSet()
+                binding.materialCalendarView.addDecorator(
+                    DateDecorator(diasSet, color)
+                )
+            }
+        }
+        viewModel.cargarDiasCumplidos()
     }
 
     private fun observeViewModel() {

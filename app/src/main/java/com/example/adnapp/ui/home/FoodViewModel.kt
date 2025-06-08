@@ -57,12 +57,12 @@ class FoodViewModel : ViewModel() {
                     }
                 } else {
                     Log.e("FoodViewModel", "Error en la respuesta: ${response.code()}")
-                    _error.value = "Error en la respuesta: ${response.code()}"
+                    _error.value = "Error en la respuesta de la búsqueda"
                 }
 
             } catch (e: Exception) {
                 Log.e("FoodViewModel", "Error en la búsqueda: ${e.message}", e)
-                _error.value = "Error al buscar: ${e.message}"
+                _error.value = "Error al buscar:\n Fallo con la conexión"
 
             } finally {
                 _isLoading.value = false
