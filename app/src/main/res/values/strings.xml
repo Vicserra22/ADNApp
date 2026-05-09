@@ -56,4 +56,5 @@
     <string name="nombre">Nombre</string>
     <string name="g_nero">Género</string>
     <string name="dieta_seleccionada">Dieta seleccionada</string>
+    <string name="seleccione_la_dieta_a_seguir">Seleccione una dieta</string>
 </resources>

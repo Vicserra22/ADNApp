@@ -142,6 +142,7 @@ class FoodFragment : Fragment() {
                 val cantidad = input.text.toString().toDoubleOrNull()
                 if (cantidad != null && cantidad > 0) {
                     saveIntoFirebase(product, cantidad)
+                    binding.editTextSearch.clearFocus()
                 } else {
                     Toast.makeText(requireContext(), "Introduce una cantidad válida", Toast.LENGTH_SHORT).show()
                     showQuantityDialog(product)

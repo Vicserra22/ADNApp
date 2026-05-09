@@ -1,6 +1,5 @@
 package com.example.adnapp.ui.dashboard
 
-import android.graphics.Color
 import android.util.Log
 import androidx.lifecycle.*
 import com.google.firebase.auth.FirebaseAuth
@@ -134,8 +133,10 @@ class DashboardViewModel : ViewModel() {
                         val color = when (promedio) {
                             in 20.0..70.0 -> "#FF9800".toColorInt() // naranja
                             in 70.1..90.0 -> "#FFD93D".toColorInt() // amarillo
-                            in 90.1..110.0 -> "#4CAF50".toColorInt() // verde
-                            in 110.1..130.0 -> "#FF9800".toColorInt() // naranja
+                            in 90.1..95.0 -> "#4CAF50".toColorInt() // verde
+                            in 95.01..105.0 -> "#00C853".toColorInt() // verde oscuro
+                            in 105.1..111.0 -> "#4CAF50".toColorInt() // verde
+                            in 111.1..130.0 -> "#FF9800".toColorInt() // naranja
                             else -> "#F44336".toColorInt() // rojo
                         }
                         resultado[CalendarDay.from(

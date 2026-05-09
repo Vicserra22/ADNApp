@@ -7,6 +7,14 @@
     android:layout_marginVertical="40dp"
     android:layout_marginHorizontal="24dp">
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/seleccione_la_dieta_a_seguir"
+        android:textSize="22sp"
+        android:textColor="@color/adn_black"
+        android:layout_marginBottom="32dp"/>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvDiets"
         android:layout_width="match_parent"
