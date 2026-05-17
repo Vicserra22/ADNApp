@@ -1,28 +1,30 @@
 package com.example.adnapp.ui.home
 
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.adnapp.api.RetrofitClient
 import com.example.adnapp.models.Product
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class FoodViewModel : ViewModel() {
 
-    private val _resultados = MutableLiveData<List<Product>>()
-    val resultados: LiveData<List<Product>> get() = _resultados
+    private val _resultados = MutableStateFlow<List<Product>>(emptyList())
+    val resultados: StateFlow<List<Product>> = _resultados.asStateFlow()
 
-    private val _error = MutableLiveData<String>()
-    val error: LiveData<String> get() = _error
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error.asStateFlow()
 
-    private val _isLoading = MutableLiveData<Boolean>()
-    val isLoading: LiveData<Boolean> get() = _isLoading
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     fun buscarAlimentos(query: String) {
         viewModelScope.launch {
             _isLoading.value = true
+            _error.value = null
             try {
                 Log.d("FoodViewModel", "Buscando alimentos para: $query")
 
@@ -52,6 +54,7 @@ class FoodViewModel : ViewModel() {
 
                     if (filtrados.isEmpty()) {
                         _error.value = "No se encontraron alimentos para tu búsqueda."
+                        _resultados.value = emptyList()
                     } else {
                         _resultados.value = filtrados
                     }

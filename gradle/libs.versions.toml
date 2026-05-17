@@ -1,5 +1,5 @@
 [versions]
-agp = "8.10.0"
+agp = "8.13.2"
 converterGson = "2.9.0"
 coreSplashscreen = "1.0.1"
 coreSplashscreenVersion = "1.0.0"
@@ -7,6 +7,7 @@ firebaseBom = "33.14.0"
 firebaseBomVersion = "33.13.0"
 gson = "2.10.1"
 kotlin = "2.0.21"
+compose-bom = "2025.02.00"
 coreKtx = "1.16.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -20,6 +21,9 @@ materialCalendarview = "2.0.0"
 materialCalendarviewVersion = "1.4.3"
 navigationFragmentKtx = "2.9.0"
 navigationUiKtx = "2.9.0"
+navigationCompose = "2.8.8"
+uiViewBinding = "1.7.8"
+coilCompose = "2.7.0"
 picasso = "2.8"
 firebaseAuthKtx = "23.2.1"
 firebaseFirestoreKtx = "25.1.4"
@@ -46,13 +50,25 @@ androidx-lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecy
 androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }
 androidx-navigation-fragment-ktx = { group = "androidx.navigation", name = "navigation-fragment-ktx", version.ref = "navigationFragmentKtx" }
 androidx-navigation-ui-ktx = { group = "androidx.navigation", name = "navigation-ui-ktx", version.ref = "navigationUiKtx" }
+androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
+androidx-ui-viewbinding = { group = "androidx.compose.ui", name = "ui-viewbinding", version.ref = "uiViewBinding" }
+coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 material-calendarview-v143 = { module = "com.prolificinteractive:material-calendarview", version.ref = "materialCalendarviewVersion" }
 picasso = { module = "com.squareup.picasso:picasso", version.ref = "picasso" }
 google-firebase-auth-ktx = { group = "com.google.firebase", name = "firebase-auth-ktx", version.ref = "firebaseAuthKtx" }
 firebase-firestore-ktx = { group = "com.google.firebase", name = "firebase-firestore-ktx", version.ref = "firebaseFirestoreKtx" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "compose-bom" }
+androidx-ui = { group = "androidx.compose.ui", name = "ui" }
+androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version = "1.10.0" }
+androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycleViewmodelKtx" }
+
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

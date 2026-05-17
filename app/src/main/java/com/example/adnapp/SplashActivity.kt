@@ -4,20 +4,40 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
 @SuppressLint("CustomSplashScreen")
-class SplashActivity : AppCompatActivity() {
+class SplashActivity : ComponentActivity() {
 
     private val auth by lazy { FirebaseAuth.getInstance() }
     private val TAG = "SplashActivity"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_splash)
+        
+        setContent {
+            MaterialTheme {
+                SplashScreen()
+            }
+        }
 
         Log.d(TAG, "onCreate - Iniciando Splash")
 
@@ -74,5 +94,50 @@ class SplashActivity : AppCompatActivity() {
         Log.d(TAG, "Redirigiendo a WelcomeActivity")
         startActivity(Intent(this, WelcomeActivity::class.java))
         finish()
+    }
+}
+
+@Composable
+fun SplashScreen() {
+    val lightGreen = Color(0xFFC8E6C9) // Using adn_light_green equivalent from colors.xml
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(lightGreen),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.adn_logo),
+                contentDescription = stringResource(R.string.app_name),
+                modifier = Modifier.size(200.dp)
+            )
+
+            Text(
+                text = stringResource(R.string.adn),
+                color = Color.Black,
+                fontSize = 40.sp,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+
+            Text(
+                text = stringResource(R.string.splash_subtitle),
+                color = Color.Black,
+                fontSize = 22.sp,
+                modifier = Modifier.padding(top = 48.dp)
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SplashScreenPreview() {
+    MaterialTheme {
+        SplashScreen()
     }
 }

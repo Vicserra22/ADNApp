@@ -3,59 +3,32 @@ package com.example.adnapp
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
-import androidx.activity.OnBackPressedCallback
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
-import com.example.adnapp.databinding.ActivityDataRegistrationBinding
-import com.example.adnapp.fragments.DietSelectionFragment
-import com.example.adnapp.fragments.UserInfoFragment
-import com.example.adnapp.interfaces.OnDietSelectionCompleteListener
-import com.example.adnapp.interfaces.OnUserInfoCompleteListener
+import androidx.compose.material3.MaterialTheme
+import com.example.adnapp.ui.registration.RegistrationFlow
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
-// Flujo de registro de datos
-class DataRegistrationActivity : AppCompatActivity(),
-    OnUserInfoCompleteListener,
-    OnDietSelectionCompleteListener {
-
-    private lateinit var binding: ActivityDataRegistrationBinding
-    private var currentStep = 0
+class DataRegistrationActivity : ComponentActivity() {
 
     private val sharedViewModel: SharedViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityDataRegistrationBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                when (currentStep) {
-                    0 -> finish()
-                    1 -> {
-                        supportFragmentManager.popBackStack()
-                        currentStep = 0
-                    }
-                }
+        setContent {
+            MaterialTheme {
+                RegistrationFlow(
+                    sharedViewModel = sharedViewModel,
+                    onComplete = { onRegistrationComplete() }
+                )
             }
-        })
-
-        supportFragmentManager.beginTransaction()
-            .replace(binding.fragmentContainer.id, UserInfoFragment())
-            .commit()
+        }
     }
 
-    override fun onUserInfoComplete() {
-        currentStep = 1
-        supportFragmentManager.beginTransaction()
-            .replace(binding.fragmentContainer.id, DietSelectionFragment())
-            .addToBackStack(null)
-            .commit()
-    }
-
-    override fun onDietSelectionComplete() {
+    private fun onRegistrationComplete() {
         val auth = FirebaseAuth.getInstance()
         val db = Firebase.firestore
         val currentUser = auth.currentUser
@@ -104,5 +77,4 @@ class DataRegistrationActivity : AppCompatActivity(),
             Toast.makeText(this, "Faltan datos del usuario o dieta", Toast.LENGTH_SHORT).show()
         }
     }
-
 }
