@@ -1,18 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="dark_green">#1B5E20</color>
-    <color name="olive">#C8E6C9</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
+    <color name="primary">@color/green_40</color>
+    <color name="primary_variant">@color/green_20</color>
+    <color name="secondary">@color/green_80</color>
+    
+    <color name="green_100">#E6FFE1</color>
+    <color name="green_80">#C8E6C9</color>
+    <color name="green_60">#4CAF50</color>
+    <color name="green_40">#398F60</color>
+    <color name="green_20">#2E7D32</color>
+
+    <color name="error">#D32F2F</color>
+    <color name="error_action">#E91E63</color>
+    
+    <color name="surface">#F8FFF6</color>
+    
+    <color name="neutral_100">#FFFFFF</color>
+    <color name="neutral_80">#F5F5F5</color>
+    <color name="neutral_60">#CCCCCC</color>
+    <color name="neutral_40">#4E4E4E</color>
+    <color name="neutral_20">#1C1B1F</color>
+    <color name="neutral_0">#000000</color>
+    
+    <color name="transparent">#00000000</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="light_green">#E6FFE1</color>
-    <color name="adn_green">#398F60</color>
-    <color name="adn_black">#000000</color>
-    <color name="adn_dark_green">#398F60</color>
-    <color name="adn_light_green">#C8E6C9</color>
-    <color name="background_light">#F8FFF6</color>
-    <color name="placeholder">#4E4E4E</color>
-    <color name="log_out">#E91E63</color>
 </resources>
