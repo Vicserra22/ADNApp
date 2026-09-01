@@ -1,4 +1,4 @@
-package com.example.adnapp
+package com.adn.adnapp
 
 import org.junit.Test
 

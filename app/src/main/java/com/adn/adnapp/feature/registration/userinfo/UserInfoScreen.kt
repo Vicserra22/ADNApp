@@ -39,6 +39,7 @@ fun UserInfoScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .imePadding()
                 .padding(24.dp)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -79,14 +80,16 @@ fun UserInfoScreen(
             )
             Spacer(modifier = Modifier.height(16.dp))
             
-            // Gender selection (simplified as text input for now, could be dropdown)
-            OutlinedTextField(
-                value = uiState.gender,
-                onValueChange = viewModel::onGenderChanged,
-                label = { Text(stringResource(R.string.gender)) },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
+            Text(stringResource(R.string.gender), modifier = Modifier.fillMaxWidth())
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf("Hombre", "Mujer", "Otro").forEach { gender ->
+                    FilterChip(
+                        selected = uiState.gender == gender,
+                        onClick = { viewModel.onGenderChanged(gender) },
+                        label = { Text(gender) }
+                    )
+                }
+            }
 
             if (uiState.error != null) {
                 Spacer(modifier = Modifier.height(8.dp))

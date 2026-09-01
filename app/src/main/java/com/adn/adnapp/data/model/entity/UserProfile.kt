@@ -6,6 +6,5 @@ data class UserProfile(
     val age: Int = 0,
     val weight: Double = 0.0,
     val height: Double = 0.0,
-    val gender: String = "",
-    val dietId: String = ""
+    val gender: String = ""
 )

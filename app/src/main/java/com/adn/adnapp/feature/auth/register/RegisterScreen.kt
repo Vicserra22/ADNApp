@@ -2,6 +2,10 @@ package com.adn.adnapp.feature.auth.register
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,7 +22,7 @@ import org.koin.androidx.compose.koinViewModel
 fun RegisterScreen(
     viewModel: RegisterViewModel = koinViewModel(),
     onNavigateBack: () -> Unit,
-    onNavigateToRegistrationFlow: () -> Unit
+    onNavigateToUserInfo: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var password by remember { mutableStateOf("") }
@@ -27,7 +31,7 @@ fun RegisterScreen(
         viewModel.eventFlow.collect { event ->
             when (event) {
                 is RegisterEvent.NavigateBack -> onNavigateBack()
-                is RegisterEvent.NavigateToRegistrationFlow -> onNavigateToRegistrationFlow()
+                is RegisterEvent.NavigateToUserInfo -> onNavigateToUserInfo()
             }
         }
     }
@@ -37,8 +41,8 @@ fun RegisterScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.signup)) },
                 navigationIcon = {
-                    Button(onClick = { viewModel.onBackClicked() }) {
-                        Text("<")
+                    IconButton(onClick = viewModel::onBackClicked) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
                     }
                 }
             )
@@ -48,9 +52,11 @@ fun RegisterScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .imePadding()
+                .verticalScroll(rememberScrollState())
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterVertically)
         ) {
             OutlinedTextField(
                 value = uiState.email,

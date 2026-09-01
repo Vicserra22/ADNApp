@@ -17,7 +17,7 @@ data class RegisterUiState(
 )
 
 sealed class RegisterEvent {
-    object NavigateToRegistrationFlow : RegisterEvent()
+    object NavigateToUserInfo : RegisterEvent()
     object NavigateBack : RegisterEvent()
 }
 
@@ -40,12 +40,16 @@ class RegisterViewModel(
             _uiState.update { it.copy(error = "Completa todos los campos") }
             return
         }
+        if (!isValidEmail(_uiState.value.email) || password.length < 6) {
+            _uiState.update { it.copy(error = "Introduce un email válido y una contraseña de al menos 6 caracteres") }
+            return
+        }
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             val result = authRepository.register(_uiState.value.email, password)
             if (result.isSuccess) {
-                _eventFlow.emit(RegisterEvent.NavigateToRegistrationFlow)
+                _eventFlow.emit(RegisterEvent.NavigateToUserInfo)
             } else {
                 _uiState.update { it.copy(isLoading = false, error = result.exceptionOrNull()?.message ?: "Error al registrarse") }
             }
@@ -56,5 +60,10 @@ class RegisterViewModel(
         viewModelScope.launch {
             _eventFlow.emit(RegisterEvent.NavigateBack)
         }
+    }
+
+    private fun isValidEmail(value: String): Boolean {
+        val at = value.indexOf('@')
+        return at > 0 && value.indexOf('.', startIndex = at + 2) > at + 1
     }
 }

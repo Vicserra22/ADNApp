@@ -2,6 +2,8 @@ package com.adn.adnapp.core.constants
 
 object FirestoreKeys {
     const val USERS = "users"
+    const val AREAS = "areas"
+    const val NUTRITION = "nutrition"
     const val DAILY_CONSUMPTION = "dailyConsumption"
     const val INGESTED_FOODS = "ingestedFoods"
     const val NAME = "name"
@@ -9,7 +11,9 @@ object FirestoreKeys {
     const val WEIGHT = "weight"
     const val HEIGHT = "height"
     const val GENDER = "gender"
-    const val DIET = "diet"
+    const val DIETS = "diet"
+    const val DIET_ID = "dietId"
+    const val ONBOARDING_COMPLETED = "onboardingCompleted"
     const val CALORIES = "calories"
     const val PROTEINS = "proteins"
     const val CARBS = "carbs"

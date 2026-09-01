@@ -2,8 +2,8 @@ package com.adn.adnapp.feature.home
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
@@ -40,8 +40,20 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .imePadding()
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp)
         ) {
+            uiState.dailyConsumption?.let { daily ->
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(16.dp)) {
+                        Text("Resumen de hoy", fontWeight = FontWeight.Bold)
+                        Text("${daily.calories.toInt()} kcal · ${daily.proteins.toInt()} g proteína")
+                        Text("${daily.carbs.toInt()} g carbohidratos · ${daily.fats.toInt()} g grasas")
+                    }
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+            }
             OutlinedTextField(
                 value = uiState.searchQuery,
                 onValueChange = viewModel::onSearchQueryChanged,
@@ -56,6 +68,15 @@ fun HomeScreen(
             )
 
             Spacer(modifier = Modifier.height(16.dp))
+
+            if (uiState.error != null) {
+                Text(text = uiState.error!!, color = MaterialTheme.colorScheme.error)
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+            if (uiState.successMessage != null) {
+                Text(text = uiState.successMessage!!, color = MaterialTheme.colorScheme.primary)
+                Spacer(modifier = Modifier.height(8.dp))
+            }
 
             if (uiState.selectedProduct != null) {
                 Card(modifier = Modifier.fillMaxWidth()) {
@@ -94,24 +115,16 @@ fun HomeScreen(
                     CircularProgressIndicator()
                 }
             } else {
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(uiState.searchResults) { product ->
-                        ListItem(
-                            headlineContent = { Text(product.name) },
-                            supportingContent = { Text("${product.calories} kcal/100g") },
-                            modifier = Modifier.clickable { viewModel.onProductSelected(product) }
-                        )
-                        Divider()
-                    }
+                uiState.searchResults.forEach { product ->
+                    ListItem(
+                        headlineContent = { Text(product.name) },
+                        supportingContent = { Text("${product.calories.toInt()} kcal/100g") },
+                        modifier = Modifier.clickable { viewModel.onProductSelected(product) }
+                    )
+                    HorizontalDivider()
                 }
             }
 
-            if (uiState.error != null) {
-                Text(text = uiState.error!!, color = MaterialTheme.colorScheme.error)
-            }
-            if (uiState.successMessage != null) {
-                Text(text = uiState.successMessage!!, color = MaterialTheme.colorScheme.primary)
-            }
         }
     }
 }

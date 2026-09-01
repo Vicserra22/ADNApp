@@ -10,6 +10,7 @@ import com.adn.adnapp.domain.repository.FoodRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -45,9 +46,9 @@ class HomeViewModel(
         val dateKey = dateFormat.format(Date())
         
         viewModelScope.launch {
-            foodRepository.observeDailyConsumption(uid, dateKey).collect { consumption ->
-                _uiState.update { it.copy(dailyConsumption = consumption) }
-            }
+            foodRepository.observeDailyConsumption(uid, dateKey)
+                .catch { _uiState.update { state -> state.copy(error = "No se pudo cargar el consumo diario") } }
+                .collect { consumption -> _uiState.update { it.copy(dailyConsumption = consumption) } }
         }
     }
 
@@ -81,7 +82,7 @@ class HomeViewModel(
     fun addFoodEntry() {
         val product = _uiState.value.selectedProduct ?: return
         val quantityStr = _uiState.value.quantityToAdd
-        val quantity = quantityStr.toDoubleOrNull()
+        val quantity = quantityStr.replace(',', '.').toDoubleOrNull()
         
         if (quantity == null || quantity <= 0) {
             _uiState.update { it.copy(error = "Cantidad inválida") }

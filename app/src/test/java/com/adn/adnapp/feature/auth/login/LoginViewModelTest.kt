@@ -3,6 +3,8 @@ package com.adn.adnapp.feature.auth.login
 import app.cash.turbine.test
 import com.adn.adnapp.domain.repository.AuthRepository
 import com.adn.adnapp.domain.repository.UserRepository
+import com.adn.adnapp.domain.repository.NutritionRepository
+import com.adn.adnapp.data.model.entity.NutritionProfile
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -21,6 +23,7 @@ class LoginViewModelTest {
 
     private val authRepository = mockk<AuthRepository>(relaxed = true)
     private val userRepository = mockk<UserRepository>(relaxed = true)
+    private val nutritionRepository = mockk<NutritionRepository>(relaxed = true)
     
     private lateinit var viewModel: LoginViewModel
     
@@ -29,7 +32,7 @@ class LoginViewModelTest {
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        viewModel = LoginViewModel(authRepository, userRepository)
+        viewModel = LoginViewModel(authRepository, userRepository, nutritionRepository)
     }
 
     @After
@@ -64,6 +67,8 @@ class LoginViewModelTest {
         coEvery { authRepository.login(testEmail, testPassword) } returns Result.success(Unit)
         coEvery { authRepository.getCurrentUserId() } returns testUid
         coEvery { userRepository.userExists(testUid) } returns Result.success(true)
+        coEvery { nutritionRepository.getNutritionProfile(testUid) } returns
+            Result.success(NutritionProfile("balanced", onboardingCompleted = true))
 
         viewModel.onEmailChanged(testEmail)
         

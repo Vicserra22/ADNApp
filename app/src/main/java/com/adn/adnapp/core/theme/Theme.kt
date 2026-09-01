@@ -1,45 +1,31 @@
 package com.adn.adnapp.core.theme
 
-import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalView
-import androidx.core.view.WindowCompat
 
 private val LightColorScheme = lightColorScheme(
-    primary = AdnColors.Primary,
-    onPrimary = AdnColors.OnPrimary,
-    primaryContainer = AdnColors.Green80,
-    secondary = AdnColors.Secondary,
-    background = AdnColors.Background,
-    surface = AdnColors.Surface,
-    onBackground = AdnColors.OnBackground,
-    onSurface = AdnColors.OnSurface,
+    primary = AdnColors.Primary, onPrimary = AdnColors.OnPrimary,
+    primaryContainer = AdnColors.Green80, secondary = AdnColors.Secondary,
+    background = AdnColors.Background, surface = AdnColors.Surface,
+    onBackground = AdnColors.OnBackground, onSurface = AdnColors.OnSurface,
     error = AdnColors.Error
 )
 
+private val DarkColorScheme = darkColorScheme(
+    primary = AdnColors.Green80, onPrimary = AdnColors.Green20,
+    primaryContainer = AdnColors.Green40, secondary = AdnColors.Green60,
+    background = AdnColors.Neutral20, surface = AdnColors.Neutral40,
+    onBackground = AdnColors.Neutral100, onSurface = AdnColors.Neutral100,
+    error = AdnColors.MacroLow
+)
+
 @Composable
-fun AdnTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    content: @Composable () -> Unit
-) {
-    val colorScheme = LightColorScheme
-
-    val view = LocalView.current
-    if (!view.isInEditMode) {
-        SideEffect {
-            val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
-        }
-    }
-
+fun AdnTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme,
         typography = Typography,
         content = content
     )

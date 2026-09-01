@@ -2,6 +2,10 @@ package com.adn.adnapp.feature.auth.login
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,7 +23,8 @@ fun LoginScreen(
     viewModel: LoginViewModel = koinViewModel(),
     onNavigateBack: () -> Unit,
     onNavigateToMain: () -> Unit,
-    onNavigateToRegistrationFlow: () -> Unit
+    onNavigateToUserInfo: () -> Unit,
+    onNavigateToDietSelection: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var password by remember { mutableStateOf("") }
@@ -29,7 +34,8 @@ fun LoginScreen(
             when (event) {
                 is LoginEvent.NavigateBack -> onNavigateBack()
                 is LoginEvent.NavigateToMain -> onNavigateToMain()
-                is LoginEvent.NavigateToRegistrationFlow -> onNavigateToRegistrationFlow()
+                is LoginEvent.NavigateToUserInfo -> onNavigateToUserInfo()
+                is LoginEvent.NavigateToDietSelection -> onNavigateToDietSelection()
             }
         }
     }
@@ -39,8 +45,8 @@ fun LoginScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.login)) },
                 navigationIcon = {
-                    Button(onClick = { viewModel.onBackClicked() }) {
-                        Text("<")
+                    IconButton(onClick = viewModel::onBackClicked) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
                     }
                 }
             )
@@ -50,9 +56,11 @@ fun LoginScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .imePadding()
+                .verticalScroll(rememberScrollState())
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterVertically)
         ) {
             OutlinedTextField(
                 value = uiState.email,

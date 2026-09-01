@@ -36,6 +36,10 @@ class FoodRepositoryImpl(
         }
     }
 
+    override suspend fun setDailyConsumption(uid: String, consumption: DailyConsumption): Result<Unit> {
+        return runCatching { firestoreDataSource.setDailyConsumption(uid, consumption) }
+    }
+
     override fun observeDailyConsumption(uid: String, dateKey: String): Flow<DailyConsumption> {
         return firestoreDataSource.observeDailyConsumption(uid, dateKey)
     }

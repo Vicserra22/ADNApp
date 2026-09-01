@@ -4,8 +4,11 @@ import com.adn.adnapp.core.constants.FirestoreKeys
 import com.adn.adnapp.data.model.entity.DailyConsumption
 import com.adn.adnapp.data.model.entity.Diet
 import com.adn.adnapp.data.model.entity.FoodEntry
+import com.adn.adnapp.data.model.entity.NutritionProfile
 import com.adn.adnapp.data.model.entity.UserProfile
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -19,8 +22,7 @@ class FirestoreDataSource(private val db: FirebaseFirestore) {
             FirestoreKeys.AGE to profile.age,
             FirestoreKeys.WEIGHT to profile.weight,
             FirestoreKeys.HEIGHT to profile.height,
-            FirestoreKeys.GENDER to profile.gender,
-            FirestoreKeys.DIET to profile.dietId
+            FirestoreKeys.GENDER to profile.gender
         )
         db.collection(FirestoreKeys.USERS).document(uid).set(data).await()
     }
@@ -34,9 +36,27 @@ class FirestoreDataSource(private val db: FirebaseFirestore) {
             age = doc.getLong(FirestoreKeys.AGE)?.toInt() ?: 0,
             weight = doc.getDouble(FirestoreKeys.WEIGHT) ?: 0.0,
             height = doc.getDouble(FirestoreKeys.HEIGHT) ?: 0.0,
-            gender = doc.getString(FirestoreKeys.GENDER) ?: "",
-            dietId = doc.getString(FirestoreKeys.DIET) ?: ""
+            gender = doc.getString(FirestoreKeys.GENDER) ?: ""
         )
+    }
+
+    suspend fun getNutritionProfile(uid: String): NutritionProfile? {
+        val doc = nutritionProfileRef(uid).get().await()
+        if (!doc.exists()) return null
+        return NutritionProfile(
+            dietId = doc.getString(FirestoreKeys.DIET_ID) ?: "",
+            onboardingCompleted = doc.getBoolean(FirestoreKeys.ONBOARDING_COMPLETED) ?: false
+        )
+    }
+
+    suspend fun saveNutritionProfile(uid: String, profile: NutritionProfile) {
+        nutritionProfileRef(uid).set(
+            mapOf(
+                FirestoreKeys.DIET_ID to profile.dietId,
+                FirestoreKeys.ONBOARDING_COMPLETED to profile.onboardingCompleted
+            ),
+            SetOptions.merge()
+        ).await()
     }
 
     suspend fun updateField(uid: String, field: String, value: Any) {
@@ -44,7 +64,7 @@ class FirestoreDataSource(private val db: FirebaseFirestore) {
     }
 
     suspend fun getAvailableDiets(): List<Diet> {
-        val snapshot = db.collection(FirestoreKeys.DIET).get().await()
+        val snapshot = db.collection(FirestoreKeys.DIETS).get().await()
         return snapshot.documents.map { doc ->
             Diet(
                 id = doc.id,
@@ -59,7 +79,7 @@ class FirestoreDataSource(private val db: FirebaseFirestore) {
     }
 
     suspend fun getDiet(dietId: String): Diet? {
-        val doc = db.collection(FirestoreKeys.DIET).document(dietId).get().await()
+        val doc = db.collection(FirestoreKeys.DIETS).document(dietId).get().await()
         if (!doc.exists()) return null
         return Diet(
             id = doc.id,
@@ -81,33 +101,33 @@ class FirestoreDataSource(private val db: FirebaseFirestore) {
 
         batch.set(foodsRef, entry)
 
-        val consumptionDoc = consumptionRef.get().await()
-        if (consumptionDoc.exists()) {
-            val currentCalories = consumptionDoc.getDouble(FirestoreKeys.CALORIES) ?: 0.0
-            val currentProteins = consumptionDoc.getDouble(FirestoreKeys.PROTEINS) ?: 0.0
-            val currentCarbs = consumptionDoc.getDouble(FirestoreKeys.CARBS) ?: 0.0
-            val currentFats = consumptionDoc.getDouble(FirestoreKeys.FATS) ?: 0.0
-            
-            batch.update(
-                consumptionRef,
-                mapOf(
-                    FirestoreKeys.CALORIES to (currentCalories + entry.calories),
-                    FirestoreKeys.PROTEINS to (currentProteins + entry.proteins),
-                    FirestoreKeys.CARBS to (currentCarbs + entry.carbs),
-                    FirestoreKeys.FATS to (currentFats + entry.fats)
-                )
-            )
-        } else {
-            val newData = mapOf(
-                FirestoreKeys.CALORIES to entry.calories,
-                FirestoreKeys.PROTEINS to entry.proteins,
-                FirestoreKeys.CARBS to entry.carbs,
-                FirestoreKeys.FATS to entry.fats
-            )
-            batch.set(consumptionRef, newData)
-        }
+        batch.set(
+            consumptionRef,
+            mapOf(
+                FirestoreKeys.CALORIES to FieldValue.increment(entry.calories),
+                FirestoreKeys.PROTEINS to FieldValue.increment(entry.proteins),
+                FirestoreKeys.CARBS to FieldValue.increment(entry.carbs),
+                FirestoreKeys.FATS to FieldValue.increment(entry.fats)
+            ),
+            SetOptions.merge()
+        )
 
         batch.commit().await()
+    }
+
+    suspend fun setDailyConsumption(uid: String, consumption: DailyConsumption) {
+        db.collection(FirestoreKeys.USERS).document(uid)
+            .collection(FirestoreKeys.DAILY_CONSUMPTION).document(consumption.date)
+            .set(
+                mapOf(
+                    FirestoreKeys.CALORIES to consumption.calories,
+                    FirestoreKeys.PROTEINS to consumption.proteins,
+                    FirestoreKeys.CARBS to consumption.carbs,
+                    FirestoreKeys.FATS to consumption.fats,
+                    FirestoreKeys.SUGAR to consumption.sugar
+                ),
+                SetOptions.merge()
+            ).await()
     }
 
     fun observeDailyConsumption(uid: String, dateKey: String): Flow<DailyConsumption> = callbackFlow {
@@ -158,4 +178,9 @@ class FirestoreDataSource(private val db: FirebaseFirestore) {
         }
         awaitClose { listener.remove() }
     }
+
+    private fun nutritionProfileRef(uid: String) = db.collection(FirestoreKeys.USERS)
+        .document(uid)
+        .collection(FirestoreKeys.AREAS)
+        .document(FirestoreKeys.NUTRITION)
 }

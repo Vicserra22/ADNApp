@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.adn.adnapp.data.model.entity.Diet
 import com.adn.adnapp.domain.repository.AuthRepository
 import com.adn.adnapp.domain.repository.DietRepository
-import com.adn.adnapp.domain.repository.UserRepository
+import com.adn.adnapp.domain.repository.NutritionRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -27,7 +27,7 @@ sealed class DietSelectionEvent {
 
 class DietSelectionViewModel(
     private val dietRepository: DietRepository,
-    private val userRepository: UserRepository,
+    private val nutritionRepository: NutritionRepository,
     private val authRepository: AuthRepository
 ) : ViewModel() {
 
@@ -53,6 +53,10 @@ class DietSelectionViewModel(
         }
     }
 
+    fun onRetryClicked() {
+        loadDiets()
+    }
+
     fun onDietSelected(dietId: String) {
         _uiState.update { it.copy(selectedDietId = dietId) }
     }
@@ -72,7 +76,7 @@ class DietSelectionViewModel(
                 return@launch
             }
 
-            val result = userRepository.updateField(uid, com.adn.adnapp.core.constants.FirestoreKeys.DIET, selectedId)
+            val result = nutritionRepository.completeOnboarding(uid, selectedId)
             if (result.isSuccess) {
                 _uiState.update { it.copy(isSaving = false) }
                 _eventFlow.emit(DietSelectionEvent.NavigateToMain)

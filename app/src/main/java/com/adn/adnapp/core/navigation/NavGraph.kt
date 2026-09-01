@@ -4,33 +4,23 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.navigation
+import com.adn.adnapp.core.ui.MainScreen
+import com.adn.adnapp.feature.auth.login.LoginScreen
+import com.adn.adnapp.feature.auth.register.RegisterScreen
 import com.adn.adnapp.feature.auth.welcome.WelcomeScreen
+import com.adn.adnapp.feature.registration.dietselection.DietSelectionScreen
+import com.adn.adnapp.feature.registration.userinfo.UserInfoScreen
 import com.adn.adnapp.feature.splash.SplashScreen
 
 @Composable
 fun AdnNavGraph(navController: NavHostController) {
-    NavHost(
-        navController = navController,
-        startDestination = Screen.Splash.route
-    ) {
+    NavHost(navController, startDestination = Screen.Splash.route) {
         composable(Screen.Splash.route) {
             SplashScreen(
-                onNavigateToWelcome = {
-                    navController.navigate(Screen.Welcome.route) {
-                        popUpTo(Screen.Splash.route) { inclusive = true }
-                    }
-                },
-                onNavigateToMain = {
-                    navController.navigate(Screen.Main.route) {
-                        popUpTo(Screen.Splash.route) { inclusive = true }
-                    }
-                },
-                onNavigateToRegistration = {
-                    navController.navigate(Screen.RegistrationFlow.route) {
-                        popUpTo(Screen.Splash.route) { inclusive = true }
-                    }
-                }
+                onNavigateToWelcome = { navController.clearTo(Screen.Welcome) },
+                onNavigateToUserInfo = { navController.clearTo(Screen.UserInfo) },
+                onNavigateToDietSelection = { navController.clearTo(Screen.DietSelection) },
+                onNavigateToMain = { navController.clearTo(Screen.Main) }
             )
         }
         composable(Screen.Welcome.route) {
@@ -40,54 +30,37 @@ fun AdnNavGraph(navController: NavHostController) {
             )
         }
         composable(Screen.Login.route) {
-            com.adn.adnapp.feature.auth.login.LoginScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateToMain = {
-                    navController.navigate(Screen.Main.route) {
-                        popUpTo(Screen.Welcome.route) { inclusive = true }
-                    }
-                },
-                onNavigateToRegistrationFlow = {
-                    navController.navigate(Screen.RegistrationFlow.route) {
-                        popUpTo(Screen.Welcome.route) { inclusive = true }
-                    }
-                }
+            LoginScreen(
+                onNavigateBack = navController::popBackStack,
+                onNavigateToMain = { navController.clearTo(Screen.Main) },
+                onNavigateToUserInfo = { navController.clearTo(Screen.UserInfo) },
+                onNavigateToDietSelection = { navController.clearTo(Screen.DietSelection) }
             )
         }
         composable(Screen.Register.route) {
-            com.adn.adnapp.feature.auth.register.RegisterScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateToRegistrationFlow = {
-                    navController.navigate(Screen.RegistrationFlow.route) {
-                        popUpTo(Screen.Welcome.route) { inclusive = true }
-                    }
-                }
+            RegisterScreen(
+                onNavigateBack = navController::popBackStack,
+                onNavigateToUserInfo = { navController.clearTo(Screen.UserInfo) }
             )
         }
-        navigation(startDestination = Screen.UserInfo.route, route = Screen.RegistrationFlow.route) {
-            composable(Screen.UserInfo.route) {
-                com.adn.adnapp.feature.registration.userinfo.UserInfoScreen(
-                    onNavigateToDietSelection = { navController.navigate(Screen.DietSelection.route) }
-                )
-            }
-            composable(Screen.DietSelection.route) {
-                com.adn.adnapp.feature.registration.dietselection.DietSelectionScreen(
-                    onNavigateToMain = {
-                        navController.navigate(Screen.Main.route) {
-                            popUpTo(Screen.RegistrationFlow.route) { inclusive = true }
-                        }
-                    }
-                )
-            }
+        composable(Screen.UserInfo.route) {
+            UserInfoScreen(onNavigateToDietSelection = { navController.navigate(Screen.DietSelection.route) })
+        }
+        composable(Screen.DietSelection.route) {
+            DietSelectionScreen(onNavigateToMain = { navController.clearTo(Screen.Main) })
         }
         composable(Screen.Main.route) {
-            com.adn.adnapp.core.ui.MainScreen(
-                onNavigateToSplash = {
-                    navController.navigate(Screen.Splash.route) {
-                        popUpTo(0) { inclusive = true }
-                    }
-                }
+            MainScreen(
+                onNavigateToSplash = { navController.clearTo(Screen.Welcome) },
+                onNavigateToDietSelection = { navController.navigate(Screen.DietSelection.route) }
             )
         }
+    }
+}
+
+private fun NavHostController.clearTo(screen: Screen) {
+    navigate(screen.route) {
+        popUpTo(graph.id) { inclusive = true }
+        launchSingleTop = true
     }
 }
