@@ -18,7 +18,7 @@ data class UserInfoUiState(
     val isLoading: Boolean = false, val error: String? = null
 )
 
-sealed class UserInfoEvent { data object NavigateToDietSelection : UserInfoEvent() }
+sealed class UserInfoEvent { data object NavigateToPriorities : UserInfoEvent() }
 
 class UserInfoViewModel(
     private val authRepository: AuthRepository,
@@ -61,7 +61,7 @@ class UserInfoViewModel(
             userRepository.saveUserProfile(uid, profile).fold(
                 onSuccess = {
                     update { copy(isLoading = false) }
-                    _eventFlow.emit(UserInfoEvent.NavigateToDietSelection)
+                    _eventFlow.emit(UserInfoEvent.NavigateToPriorities)
                 },
                 onFailure = { update { copy(isLoading = false, error = "Error al guardar datos") } }
             )

@@ -6,5 +6,6 @@ data class DailyConsumption(
     val proteins: Double = 0.0,
     val carbs: Double = 0.0,
     val fats: Double = 0.0,
-    val sugar: Double = 0.0
+    val sugar: Double = 0.0,
+    val waterMl: Double = 0.0
 )

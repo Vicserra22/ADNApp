@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 enum class SplashDestination {
     WELCOME,
     USER_INFO,
+    PRIORITIES,
     DIET_SELECTION,
     MAIN
 }
@@ -49,6 +50,14 @@ class SplashViewModel(
             }
             if (!userExists) {
                 navigateTo(SplashDestination.USER_INFO)
+                return@launch
+            }
+            val userProfile = userRepository.getUserProfile(uid).getOrElse {
+                showError()
+                return@launch
+            }
+            if (userProfile?.prioritiesCompleted != true) {
+                navigateTo(SplashDestination.PRIORITIES)
                 return@launch
             }
             val nutritionProfile = nutritionRepository.getNutritionProfile(uid).getOrElse {

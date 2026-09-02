@@ -36,9 +36,14 @@ class FoodRepositoryImpl(
         }
     }
 
-    override suspend fun setDailyConsumption(uid: String, consumption: DailyConsumption): Result<Unit> {
-        return runCatching { firestoreDataSource.setDailyConsumption(uid, consumption) }
-    }
+    override suspend fun updateFoodEntry(uid: String, entry: FoodEntry, dateKey: String): Result<Unit> =
+        runCatching { firestoreDataSource.updateFoodEntryAndAggregate(uid, entry, dateKey) }
+
+    override suspend fun deleteFoodEntry(uid: String, entryId: String, dateKey: String): Result<Unit> =
+        runCatching { firestoreDataSource.deleteFoodEntryAndAggregate(uid, entryId, dateKey) }
+
+    override fun observeFoodEntries(uid: String, dateKey: String): Flow<List<FoodEntry>> =
+        firestoreDataSource.observeFoodEntries(uid, dateKey)
 
     override fun observeDailyConsumption(uid: String, dateKey: String): Flow<DailyConsumption> {
         return firestoreDataSource.observeDailyConsumption(uid, dateKey)

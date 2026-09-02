@@ -10,6 +10,7 @@ import com.adn.adnapp.feature.auth.register.RegisterScreen
 import com.adn.adnapp.feature.auth.welcome.WelcomeScreen
 import com.adn.adnapp.feature.registration.dietselection.DietSelectionScreen
 import com.adn.adnapp.feature.registration.userinfo.UserInfoScreen
+import com.adn.adnapp.feature.registration.priorities.PrioritiesScreen
 import com.adn.adnapp.feature.splash.SplashScreen
 
 @Composable
@@ -19,6 +20,7 @@ fun AdnNavGraph(navController: NavHostController) {
             SplashScreen(
                 onNavigateToWelcome = { navController.clearTo(Screen.Welcome) },
                 onNavigateToUserInfo = { navController.clearTo(Screen.UserInfo) },
+                onNavigateToPriorities = { navController.clearTo(Screen.Priorities) },
                 onNavigateToDietSelection = { navController.clearTo(Screen.DietSelection) },
                 onNavigateToMain = { navController.clearTo(Screen.Main) }
             )
@@ -34,6 +36,7 @@ fun AdnNavGraph(navController: NavHostController) {
                 onNavigateBack = navController::popBackStack,
                 onNavigateToMain = { navController.clearTo(Screen.Main) },
                 onNavigateToUserInfo = { navController.clearTo(Screen.UserInfo) },
+                onNavigateToPriorities = { navController.clearTo(Screen.Priorities) },
                 onNavigateToDietSelection = { navController.clearTo(Screen.DietSelection) }
             )
         }
@@ -44,7 +47,10 @@ fun AdnNavGraph(navController: NavHostController) {
             )
         }
         composable(Screen.UserInfo.route) {
-            UserInfoScreen(onNavigateToDietSelection = { navController.navigate(Screen.DietSelection.route) })
+            UserInfoScreen(onNavigateToPriorities = { navController.navigate(Screen.Priorities.route) })
+        }
+        composable(Screen.Priorities.route) {
+            PrioritiesScreen(onCompleted = { navController.navigate(Screen.DietSelection.route) })
         }
         composable(Screen.DietSelection.route) {
             DietSelectionScreen(onNavigateToMain = { navController.clearTo(Screen.Main) })

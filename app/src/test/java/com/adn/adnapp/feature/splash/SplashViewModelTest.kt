@@ -1,6 +1,7 @@
 package com.adn.adnapp.feature.splash
 
 import com.adn.adnapp.data.model.entity.NutritionProfile
+import com.adn.adnapp.data.model.entity.UserProfile
 import com.adn.adnapp.domain.repository.AuthRepository
 import com.adn.adnapp.domain.repository.NutritionRepository
 import com.adn.adnapp.domain.repository.UserRepository
@@ -51,6 +52,7 @@ class SplashViewModelTest {
         every { auth.isAuthenticated() } returns true
         every { auth.getCurrentUserId() } returns "uid"
         coEvery { users.userExists("uid") } returns Result.success(true)
+        coEvery { users.getUserProfile("uid") } returns Result.success(UserProfile(prioritiesCompleted = true))
         coEvery { nutrition.getNutritionProfile("uid") } returns
             Result.success(NutritionProfile("balanced", true))
         val viewModel = SplashViewModel(auth, users, nutrition)

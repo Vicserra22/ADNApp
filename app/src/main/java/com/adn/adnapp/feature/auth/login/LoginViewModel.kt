@@ -22,6 +22,7 @@ sealed class LoginEvent {
     object NavigateToMain : LoginEvent()
     object NavigateToUserInfo : LoginEvent()
     object NavigateToDietSelection : LoginEvent()
+    object NavigateToPriorities : LoginEvent()
     object NavigateBack : LoginEvent()
 }
 
@@ -63,6 +64,14 @@ class LoginViewModel(
                     }
                     if (!userExists) {
                         _eventFlow.emit(LoginEvent.NavigateToUserInfo)
+                        return@launch
+                    }
+                    val userProfile = userRepository.getUserProfile(uid).getOrElse {
+                        _uiState.update { state -> state.copy(isLoading = false, error = "No se pudo cargar el perfil") }
+                        return@launch
+                    }
+                    if (userProfile?.prioritiesCompleted != true) {
+                        _eventFlow.emit(LoginEvent.NavigateToPriorities)
                         return@launch
                     }
                     val nutritionProfile = nutritionRepository.getNutritionProfile(uid).getOrElse {

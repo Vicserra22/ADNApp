@@ -18,14 +18,14 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun UserInfoScreen(
     viewModel: UserInfoViewModel = koinViewModel(),
-    onNavigateToDietSelection: () -> Unit
+    onNavigateToPriorities: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.eventFlow.collect { event ->
             when (event) {
-                is UserInfoEvent.NavigateToDietSelection -> onNavigateToDietSelection()
+                is UserInfoEvent.NavigateToPriorities -> onNavigateToPriorities()
             }
         }
     }

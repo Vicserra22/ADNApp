@@ -5,6 +5,7 @@ import com.adn.adnapp.domain.repository.AuthRepository
 import com.adn.adnapp.domain.repository.UserRepository
 import com.adn.adnapp.domain.repository.NutritionRepository
 import com.adn.adnapp.data.model.entity.NutritionProfile
+import com.adn.adnapp.data.model.entity.UserProfile
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -67,6 +68,8 @@ class LoginViewModelTest {
         coEvery { authRepository.login(testEmail, testPassword) } returns Result.success(Unit)
         coEvery { authRepository.getCurrentUserId() } returns testUid
         coEvery { userRepository.userExists(testUid) } returns Result.success(true)
+        coEvery { userRepository.getUserProfile(testUid) } returns
+            Result.success(UserProfile(prioritiesCompleted = true))
         coEvery { nutritionRepository.getNutritionProfile(testUid) } returns
             Result.success(NutritionProfile("balanced", onboardingCompleted = true))
 

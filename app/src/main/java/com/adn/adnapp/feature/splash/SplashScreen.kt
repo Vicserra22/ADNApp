@@ -31,6 +31,7 @@ fun SplashScreen(
     viewModel: SplashViewModel = koinViewModel(),
     onNavigateToWelcome: () -> Unit,
     onNavigateToUserInfo: () -> Unit,
+    onNavigateToPriorities: () -> Unit,
     onNavigateToDietSelection: () -> Unit,
     onNavigateToMain: () -> Unit
 ) {
@@ -40,6 +41,7 @@ fun SplashScreen(
         when (state.destination) {
             SplashDestination.WELCOME -> onNavigateToWelcome()
             SplashDestination.USER_INFO -> onNavigateToUserInfo()
+            SplashDestination.PRIORITIES -> onNavigateToPriorities()
             SplashDestination.DIET_SELECTION -> onNavigateToDietSelection()
             SplashDestination.MAIN -> onNavigateToMain()
             null -> Unit

@@ -9,6 +9,8 @@ import com.adn.adnapp.data.model.entity.UserProfile
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.SetOptions
+import com.adn.adnapp.domain.model.BodyGoal
+import com.adn.adnapp.domain.model.Importance
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -22,7 +24,13 @@ class FirestoreDataSource(private val db: FirebaseFirestore) {
             FirestoreKeys.AGE to profile.age,
             FirestoreKeys.WEIGHT to profile.weight,
             FirestoreKeys.HEIGHT to profile.height,
-            FirestoreKeys.GENDER to profile.gender
+            FirestoreKeys.GENDER to profile.gender,
+            FirestoreKeys.TARGET_WEIGHT to profile.targetWeight,
+            FirestoreKeys.BODY_GOAL to profile.bodyGoal.name,
+            FirestoreKeys.NUTRITION_IMPORTANCE to profile.nutritionImportance.name,
+            FirestoreKeys.SPORTS_IMPORTANCE to profile.sportsImportance.name,
+            FirestoreKeys.GOALS_IMPORTANCE to profile.goalsImportance.name,
+            FirestoreKeys.PRIORITIES_COMPLETED to profile.prioritiesCompleted
         )
         db.collection(FirestoreKeys.USERS).document(uid).set(data).await()
     }
@@ -36,7 +44,13 @@ class FirestoreDataSource(private val db: FirebaseFirestore) {
             age = doc.getLong(FirestoreKeys.AGE)?.toInt() ?: 0,
             weight = doc.getDouble(FirestoreKeys.WEIGHT) ?: 0.0,
             height = doc.getDouble(FirestoreKeys.HEIGHT) ?: 0.0,
-            gender = doc.getString(FirestoreKeys.GENDER) ?: ""
+            gender = doc.getString(FirestoreKeys.GENDER) ?: "",
+            targetWeight = doc.getDouble(FirestoreKeys.TARGET_WEIGHT) ?: 0.0,
+            bodyGoal = doc.getString(FirestoreKeys.BODY_GOAL).enumOr(BodyGoal.MAINTAIN),
+            nutritionImportance = doc.getString(FirestoreKeys.NUTRITION_IMPORTANCE).enumOr(Importance.NORMAL),
+            sportsImportance = doc.getString(FirestoreKeys.SPORTS_IMPORTANCE).enumOr(Importance.NORMAL),
+            goalsImportance = doc.getString(FirestoreKeys.GOALS_IMPORTANCE).enumOr(Importance.NORMAL),
+            prioritiesCompleted = doc.getBoolean(FirestoreKeys.PRIORITIES_COMPLETED) ?: false
         )
     }
 
@@ -73,7 +87,8 @@ class FirestoreDataSource(private val db: FirebaseFirestore) {
                 proteins = doc.getDouble(FirestoreKeys.PROTEINS) ?: 0.0,
                 carbs = doc.getDouble(FirestoreKeys.CARBS) ?: 0.0,
                 lipids = doc.getDouble(FirestoreKeys.FATS) ?: 0.0,
-                sugar = doc.getDouble(FirestoreKeys.SUGAR) ?: 0.0
+                sugar = doc.getDouble(FirestoreKeys.SUGAR) ?: 0.0,
+                water = doc.getDouble(FirestoreKeys.WATER_ML) ?: 0.0
             )
         }
     }
@@ -88,7 +103,8 @@ class FirestoreDataSource(private val db: FirebaseFirestore) {
             proteins = doc.getDouble(FirestoreKeys.PROTEINS) ?: 0.0,
             carbs = doc.getDouble(FirestoreKeys.CARBS) ?: 0.0,
             lipids = doc.getDouble(FirestoreKeys.FATS) ?: 0.0,
-            sugar = doc.getDouble(FirestoreKeys.SUGAR) ?: 0.0
+            sugar = doc.getDouble(FirestoreKeys.SUGAR) ?: 0.0,
+            water = doc.getDouble(FirestoreKeys.WATER_ML) ?: 0.0
         )
     }
 
@@ -98,16 +114,19 @@ class FirestoreDataSource(private val db: FirebaseFirestore) {
         val userRef = db.collection(FirestoreKeys.USERS).document(uid)
         val consumptionRef = userRef.collection(FirestoreKeys.DAILY_CONSUMPTION).document(dateKey)
         val foodsRef = consumptionRef.collection(FirestoreKeys.INGESTED_FOODS).document()
+        val storedEntry = entry.copy(id = foodsRef.id)
 
-        batch.set(foodsRef, entry)
+        batch.set(foodsRef, storedEntry.toFirestoreMap())
 
         batch.set(
             consumptionRef,
             mapOf(
-                FirestoreKeys.CALORIES to FieldValue.increment(entry.calories),
-                FirestoreKeys.PROTEINS to FieldValue.increment(entry.proteins),
-                FirestoreKeys.CARBS to FieldValue.increment(entry.carbs),
-                FirestoreKeys.FATS to FieldValue.increment(entry.fats)
+                FirestoreKeys.CALORIES to FieldValue.increment(storedEntry.calories),
+                FirestoreKeys.PROTEINS to FieldValue.increment(storedEntry.proteins),
+                FirestoreKeys.CARBS to FieldValue.increment(storedEntry.carbs),
+                FirestoreKeys.FATS to FieldValue.increment(storedEntry.fats),
+                FirestoreKeys.SUGAR to FieldValue.increment(storedEntry.sugar),
+                FirestoreKeys.WATER_ML to FieldValue.increment(storedEntry.waterMl)
             ),
             SetOptions.merge()
         )
@@ -115,19 +134,42 @@ class FirestoreDataSource(private val db: FirebaseFirestore) {
         batch.commit().await()
     }
 
-    suspend fun setDailyConsumption(uid: String, consumption: DailyConsumption) {
-        db.collection(FirestoreKeys.USERS).document(uid)
-            .collection(FirestoreKeys.DAILY_CONSUMPTION).document(consumption.date)
-            .set(
-                mapOf(
-                    FirestoreKeys.CALORIES to consumption.calories,
-                    FirestoreKeys.PROTEINS to consumption.proteins,
-                    FirestoreKeys.CARBS to consumption.carbs,
-                    FirestoreKeys.FATS to consumption.fats,
-                    FirestoreKeys.SUGAR to consumption.sugar
-                ),
-                SetOptions.merge()
-            ).await()
+    suspend fun updateFoodEntryAndAggregate(uid: String, entry: FoodEntry, dateKey: String) {
+        require(entry.id.isNotBlank()) { "La entrada no tiene identificador" }
+        val consumptionRef = dailyConsumptionRef(uid, dateKey)
+        val entryRef = consumptionRef.collection(FirestoreKeys.INGESTED_FOODS).document(entry.id)
+        db.runTransaction { transaction ->
+            val previous = transaction.get(entryRef)
+            require(previous.exists()) { "La entrada ya no existe" }
+            val oldEntry = previous.toFoodEntry()
+            transaction.set(entryRef, entry.toFirestoreMap())
+            transaction.set(consumptionRef, aggregateDelta(entry, oldEntry), SetOptions.merge())
+        }.await()
+    }
+
+    suspend fun deleteFoodEntryAndAggregate(uid: String, entryId: String, dateKey: String) {
+        require(entryId.isNotBlank()) { "La entrada no tiene identificador" }
+        val consumptionRef = dailyConsumptionRef(uid, dateKey)
+        val entryRef = consumptionRef.collection(FirestoreKeys.INGESTED_FOODS).document(entryId)
+        db.runTransaction { transaction ->
+            val previous = transaction.get(entryRef)
+            require(previous.exists()) { "La entrada ya no existe" }
+            val oldEntry = previous.toFoodEntry()
+            transaction.delete(entryRef)
+            transaction.set(consumptionRef, aggregateDelta(FoodEntry(), oldEntry), SetOptions.merge())
+        }.await()
+    }
+
+    fun observeFoodEntries(uid: String, dateKey: String): Flow<List<FoodEntry>> = callbackFlow {
+        val ref = dailyConsumptionRef(uid, dateKey).collection(FirestoreKeys.INGESTED_FOODS)
+        val listener = ref.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                close(error)
+                return@addSnapshotListener
+            }
+            trySend(snapshot?.documents?.map { it.toFoodEntry() }?.sortedByDescending { it.timestamp }.orEmpty())
+        }
+        awaitClose { listener.remove() }
     }
 
     fun observeDailyConsumption(uid: String, dateKey: String): Flow<DailyConsumption> = callbackFlow {
@@ -146,7 +188,9 @@ class FirestoreDataSource(private val db: FirebaseFirestore) {
                         calories = snapshot.getDouble(FirestoreKeys.CALORIES) ?: 0.0,
                         proteins = snapshot.getDouble(FirestoreKeys.PROTEINS) ?: 0.0,
                         carbs = snapshot.getDouble(FirestoreKeys.CARBS) ?: 0.0,
-                        fats = snapshot.getDouble(FirestoreKeys.FATS) ?: 0.0
+                        fats = snapshot.getDouble(FirestoreKeys.FATS) ?: 0.0,
+                        sugar = snapshot.getDouble(FirestoreKeys.SUGAR) ?: 0.0,
+                        waterMl = snapshot.getDouble(FirestoreKeys.WATER_ML) ?: 0.0
                     )
                 )
             } else {
@@ -171,7 +215,9 @@ class FirestoreDataSource(private val db: FirebaseFirestore) {
                     calories = doc.getDouble(FirestoreKeys.CALORIES) ?: 0.0,
                     proteins = doc.getDouble(FirestoreKeys.PROTEINS) ?: 0.0,
                     carbs = doc.getDouble(FirestoreKeys.CARBS) ?: 0.0,
-                    fats = doc.getDouble(FirestoreKeys.FATS) ?: 0.0
+                    fats = doc.getDouble(FirestoreKeys.FATS) ?: 0.0,
+                    sugar = doc.getDouble(FirestoreKeys.SUGAR) ?: 0.0,
+                    waterMl = doc.getDouble(FirestoreKeys.WATER_ML) ?: 0.0
                 )
             }
             trySend(map)
@@ -183,4 +229,49 @@ class FirestoreDataSource(private val db: FirebaseFirestore) {
         .document(uid)
         .collection(FirestoreKeys.AREAS)
         .document(FirestoreKeys.NUTRITION)
+
+    private fun dailyConsumptionRef(uid: String, dateKey: String) = db.collection(FirestoreKeys.USERS)
+        .document(uid).collection(FirestoreKeys.DAILY_CONSUMPTION).document(dateKey)
 }
+
+private fun FoodEntry.toFirestoreMap(): Map<String, Any> = mapOf(
+    "id" to id,
+    FirestoreKeys.PRODUCT_ID to productId,
+    FirestoreKeys.NAME to name,
+    FirestoreKeys.QUANTITY to quantity,
+    FirestoreKeys.CALORIES to calories,
+    FirestoreKeys.PROTEINS to proteins,
+    FirestoreKeys.CARBS to carbs,
+    FirestoreKeys.FATS to fats,
+    FirestoreKeys.SUGAR to sugar,
+    FirestoreKeys.WATER_ML to waterMl,
+    FirestoreKeys.KIND to kind,
+    FirestoreKeys.TIMESTAMP to timestamp
+)
+
+private fun com.google.firebase.firestore.DocumentSnapshot.toFoodEntry() = FoodEntry(
+    id = id,
+    productId = getString(FirestoreKeys.PRODUCT_ID) ?: "",
+    name = getString(FirestoreKeys.NAME) ?: "Alimento",
+    quantity = getDouble(FirestoreKeys.QUANTITY) ?: 0.0,
+    calories = getDouble(FirestoreKeys.CALORIES) ?: 0.0,
+    proteins = getDouble(FirestoreKeys.PROTEINS) ?: 0.0,
+    carbs = getDouble(FirestoreKeys.CARBS) ?: 0.0,
+    fats = getDouble(FirestoreKeys.FATS) ?: 0.0,
+    sugar = getDouble(FirestoreKeys.SUGAR) ?: 0.0,
+    waterMl = getDouble(FirestoreKeys.WATER_ML) ?: 0.0,
+    kind = getString(FirestoreKeys.KIND) ?: FoodEntry.KIND_FOOD,
+    timestamp = getLong(FirestoreKeys.TIMESTAMP) ?: 0L
+)
+
+private fun aggregateDelta(new: FoodEntry, old: FoodEntry): Map<String, Any> = mapOf(
+    FirestoreKeys.CALORIES to FieldValue.increment(new.calories - old.calories),
+    FirestoreKeys.PROTEINS to FieldValue.increment(new.proteins - old.proteins),
+    FirestoreKeys.CARBS to FieldValue.increment(new.carbs - old.carbs),
+    FirestoreKeys.FATS to FieldValue.increment(new.fats - old.fats),
+    FirestoreKeys.SUGAR to FieldValue.increment(new.sugar - old.sugar),
+    FirestoreKeys.WATER_ML to FieldValue.increment(new.waterMl - old.waterMl)
+)
+
+private inline fun <reified T : Enum<T>> String?.enumOr(default: T): T =
+    this?.let { value -> enumValues<T>().firstOrNull { it.name == value } } ?: default

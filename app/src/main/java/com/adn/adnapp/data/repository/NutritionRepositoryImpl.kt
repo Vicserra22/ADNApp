@@ -17,4 +17,15 @@ class NutritionRepositoryImpl(
             profile = NutritionProfile(dietId = dietId, onboardingCompleted = true)
         )
     }
+
+    override suspend fun updateDiet(uid: String, dietId: String): Result<Unit> = runCatching {
+        val current = firestoreDataSource.getNutritionProfile(uid)
+        firestoreDataSource.saveNutritionProfile(
+            uid = uid,
+            profile = NutritionProfile(
+                dietId = dietId,
+                onboardingCompleted = current?.onboardingCompleted ?: true
+            )
+        )
+    }
 }

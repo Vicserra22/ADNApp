@@ -104,7 +104,8 @@ class HomeViewModel(
                 calories = product.calories * factor,
                 proteins = product.proteins * factor,
                 carbs = product.carbs * factor,
-                fats = product.fats * factor
+                fats = product.fats * factor,
+                sugar = product.sugars * factor
             )
 
             val dateKey = dateFormat.format(Date())

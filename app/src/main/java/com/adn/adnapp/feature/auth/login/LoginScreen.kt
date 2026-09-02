@@ -24,6 +24,7 @@ fun LoginScreen(
     onNavigateBack: () -> Unit,
     onNavigateToMain: () -> Unit,
     onNavigateToUserInfo: () -> Unit,
+    onNavigateToPriorities: () -> Unit,
     onNavigateToDietSelection: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -35,6 +36,7 @@ fun LoginScreen(
                 is LoginEvent.NavigateBack -> onNavigateBack()
                 is LoginEvent.NavigateToMain -> onNavigateToMain()
                 is LoginEvent.NavigateToUserInfo -> onNavigateToUserInfo()
+                is LoginEvent.NavigateToPriorities -> onNavigateToPriorities()
                 is LoginEvent.NavigateToDietSelection -> onNavigateToDietSelection()
             }
         }
