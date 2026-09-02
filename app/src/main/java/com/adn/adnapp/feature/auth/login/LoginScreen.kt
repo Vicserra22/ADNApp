@@ -15,6 +15,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.adn.adnapp.R
+import com.adn.adnapp.core.ui.CompactTopBar
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,14 +45,7 @@ fun LoginScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.login)) },
-                navigationIcon = {
-                    IconButton(onClick = viewModel::onBackClicked) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
-                    }
-                }
-            )
+            CompactTopBar(stringResource(R.string.login), viewModel::onBackClicked)
         }
     ) { padding ->
         Column(

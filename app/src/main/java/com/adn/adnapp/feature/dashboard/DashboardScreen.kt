@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.adn.adnapp.domain.model.AppArea
+import com.adn.adnapp.core.ui.CompactTopBar
 import com.adn.adnapp.domain.service.GoalCalculator
 import org.koin.androidx.compose.koinViewModel
 
@@ -40,7 +41,7 @@ fun DashboardScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val todayConsumption = state.history[state.selectedDate]
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Dashboard") }) }) { padding ->
+    Scaffold(topBar = { CompactTopBar("Dashboard") }) { padding ->
         LazyColumn(
             Modifier.fillMaxSize().padding(padding),
             contentPadding = PaddingValues(16.dp),

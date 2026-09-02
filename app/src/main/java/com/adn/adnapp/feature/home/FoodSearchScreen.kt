@@ -30,6 +30,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.adn.adnapp.data.model.entity.Product
 import com.adn.adnapp.data.model.entity.ProductNutrient
+import com.adn.adnapp.core.ui.CompactTopBar
 import java.util.Locale
 import org.koin.androidx.compose.koinViewModel
 
@@ -39,7 +40,7 @@ fun FoodSearchScreen(viewModel: HomeViewModel = koinViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var infoProduct by remember { mutableStateOf<Product?>(null) }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Buscar alimentos") }) }) { padding ->
+    Scaffold(topBar = { CompactTopBar("Buscar alimentos") }) { padding ->
         LazyColumn(
             Modifier.fillMaxSize().padding(padding),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),

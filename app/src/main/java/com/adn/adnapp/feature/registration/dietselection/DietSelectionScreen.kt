@@ -12,6 +12,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.adn.adnapp.R
+import com.adn.adnapp.core.ui.CompactTopBar
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -32,7 +33,7 @@ fun DietSelectionScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(stringResource(R.string.select_diet)) })
+            CompactTopBar(stringResource(R.string.select_diet))
         }
     ) { padding ->
         Column(

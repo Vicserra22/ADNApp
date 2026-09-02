@@ -53,6 +53,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.adn.adnapp.R
+import com.adn.adnapp.core.ui.CompactTopBar
 import com.adn.adnapp.data.model.entity.UserProfile
 import com.adn.adnapp.data.model.entity.WeightEntry
 import com.adn.adnapp.domain.model.BodyGoal
@@ -76,7 +77,7 @@ fun ProfileScreen(
         viewModel.eventFlow.collect { if (it is ProfileEvent.NavigateToSplash) onNavigateToSplash() }
     }
 
-    Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.title_profile)) }) }) { padding ->
+    Scaffold(topBar = { CompactTopBar(stringResource(R.string.title_profile)) }) { padding ->
         when {
             state.isLoading -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()

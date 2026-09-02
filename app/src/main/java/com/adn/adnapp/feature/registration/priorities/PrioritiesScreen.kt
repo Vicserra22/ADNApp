@@ -32,6 +32,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.adn.adnapp.domain.model.BodyGoal
 import com.adn.adnapp.domain.model.Importance
 import org.koin.androidx.compose.koinViewModel
+import com.adn.adnapp.core.ui.CompactTopBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,7 +42,7 @@ fun PrioritiesScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) { viewModel.completed.collect { onCompleted() } }
-    Scaffold(topBar = { TopAppBar(title = { Text("Tus objetivos") }) }) { padding ->
+    Scaffold(topBar = { CompactTopBar("Tus objetivos") }) { padding ->
         Column(
             Modifier.fillMaxSize().padding(padding).imePadding().verticalScroll(rememberScrollState())
                 .padding(20.dp), verticalArrangement = Arrangement.spacedBy(18.dp)
