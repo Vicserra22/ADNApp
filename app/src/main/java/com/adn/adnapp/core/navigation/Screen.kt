@@ -10,6 +10,7 @@ sealed class Screen(val route: String) {
     object DietSelection : Screen("diet_selection")
     object Main : Screen("main")
     object Home : Screen("home")
+    object FoodSearch : Screen("food_search")
     object Dashboard : Screen("dashboard")
     object Profile : Screen("profile")
     object Soon : Screen("soon")

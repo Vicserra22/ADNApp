@@ -11,6 +11,14 @@ import java.util.concurrent.TimeUnit
 val networkModule = module {
     single {
         OkHttpClient.Builder()
+            .addInterceptor { chain ->
+                chain.proceed(
+                    chain.request().newBuilder()
+                        .header("User-Agent", "ADNApp/1.0 (https://github.com/Vicserra22/ADNApp)")
+                        .header("Accept-Language", "es")
+                        .build()
+                )
+            }
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)

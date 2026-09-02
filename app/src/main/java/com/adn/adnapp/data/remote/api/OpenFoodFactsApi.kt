@@ -11,7 +11,7 @@ interface OpenFoodFactsApi {
         @Query("search_simple") searchSimple: Int = 1,
         @Query("action") action: String = "process",
         @Query("json") json: Int = 1,
-        @Query("fields") fields: String = "code,product_name,image_front_url,nutriments",
-        @Query("page_size") pageSize: Int = 50
+        @Query("fields") fields: String = "code,product_name,image_front_small_url,image_front_url,brands,quantity,serving_size,ingredients_text,allergens_tags,categories_tags,nutrition_grade_fr,nova_group,nutriments",
+        @Query("page_size") pageSize: Int = 15
     ): FoodResponseDto
 }

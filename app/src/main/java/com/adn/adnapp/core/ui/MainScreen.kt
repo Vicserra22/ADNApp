@@ -57,6 +57,7 @@ import com.adn.adnapp.domain.model.AppArea
 import com.adn.adnapp.feature.dashboard.DashboardScreen
 import com.adn.adnapp.feature.dayviewer.DayViewerScreen
 import com.adn.adnapp.feature.home.HomeScreen
+import com.adn.adnapp.feature.home.FoodSearchScreen
 import com.adn.adnapp.feature.profile.ProfileScreen
 import com.adn.adnapp.feature.soon.SoonScreen
 
@@ -106,6 +107,7 @@ fun MainScreen(onNavigateToSplash: () -> Unit, onNavigateToDietSelection: () -> 
         }) { padding ->
             NavHost(navController, Screen.Home.route, Modifier.padding(padding)) {
                 composable(Screen.Home.route) { HomeScreen() }
+                composable(Screen.FoodSearch.route) { FoodSearchScreen() }
                 composable(Screen.Dashboard.route) {
                     DashboardScreen(onOpenDay = { date ->
                         navController.navigate(Screen.DayViewer.createRoute(date))
@@ -268,7 +270,7 @@ private fun AppArea.label() = when (this) {
 
 private fun AppArea.actions(): List<TreeAction> = when (this) {
     AppArea.NUTRITION -> listOf(
-        TreeAction("Alimentos", Screen.Home), TreeAction("Resumen", Screen.Dashboard), TreeAction("Dieta")
+        TreeAction("Buscar", Screen.FoodSearch), TreeAction("Resumen", Screen.Dashboard), TreeAction("Dieta")
     )
     AppArea.SPORTS -> listOf(
         TreeAction("Entrenos", Screen.Soon), TreeAction("Progreso", Screen.Soon), TreeAction("Objetivos", Screen.Soon)

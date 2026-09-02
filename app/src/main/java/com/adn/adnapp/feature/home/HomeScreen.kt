@@ -1,130 +1,87 @@
 package com.adn.adnapp.feature.home
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.adn.adnapp.R
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(
-    viewModel: HomeViewModel = koinViewModel()
-) {
-    val uiState by viewModel.uiState.collectAsState()
-
-    LaunchedEffect(uiState.error, uiState.successMessage) {
-        if (uiState.error != null || uiState.successMessage != null) {
-            // In a real app we would use a SnackbarHostState here, but for simplicity:
-            kotlinx.coroutines.delay(3000)
-            viewModel.clearMessages()
-        }
-    }
-
-    Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.title_home)) }) }
-    ) { padding ->
+fun HomeScreen(viewModel: HomeViewModel = koinViewModel()) {
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    Scaffold(topBar = { TopAppBar(title = { Text("Inicio") }) }) { padding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .imePadding()
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp)
+            Modifier.fillMaxSize().padding(padding).imePadding().verticalScroll(rememberScrollState())
+                .padding(horizontal = 18.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            uiState.dailyConsumption?.let { daily ->
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(16.dp)) {
-                        Text("Resumen de hoy", fontWeight = FontWeight.Bold)
-                        Text("${daily.calories.toInt()} kcal · ${daily.proteins.toInt()} g proteína")
-                        Text("${daily.carbs.toInt()} g carbohidratos · ${daily.fats.toInt()} g grasas")
-                    }
-                }
-                Spacer(modifier = Modifier.height(12.dp))
-            }
-            OutlinedTextField(
-                value = uiState.searchQuery,
-                onValueChange = viewModel::onSearchQueryChanged,
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text(stringResource(R.string.search_food)) },
-                trailingIcon = {
-                    IconButton(onClick = viewModel::searchFood) {
-                        Icon(Icons.Default.Search, contentDescription = "Search")
-                    }
-                },
-                singleLine = true
+            Text("Añadir datos de hoy", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            Text(
+                "Registra cantidades manuales. Cada guardado queda como una entrada independiente y se puede corregir desde el calendario.",
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            if (uiState.error != null) {
-                Text(text = uiState.error!!, color = MaterialTheme.colorScheme.error)
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-            if (uiState.successMessage != null) {
-                Text(text = uiState.successMessage!!, color = MaterialTheme.colorScheme.primary)
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-
-            if (uiState.selectedProduct != null) {
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(uiState.selectedProduct!!.name, fontWeight = FontWeight.Bold)
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text("Macros por 100g:")
-                        Text("Calorías: ${uiState.selectedProduct!!.calories}")
-                        Text("Proteínas: ${uiState.selectedProduct!!.proteins}")
-                        Text("Carbos: ${uiState.selectedProduct!!.carbs}")
-                        Text("Grasas: ${uiState.selectedProduct!!.fats}")
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        OutlinedTextField(
-                            value = uiState.quantityToAdd,
-                            onValueChange = viewModel::onQuantityChanged,
-                            label = { Text(stringResource(R.string.quantity_grams)) },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true
-                        )
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Button(
-                            onClick = viewModel::addFoodEntry,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(stringResource(R.string.add))
-                        }
+            state.dailyConsumption?.let { daily ->
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                    shape = RoundedCornerShape(22.dp), modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                        Text("Resumen de hoy", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                        Text("${daily.calories.clean()} kcal · ${daily.proteins.clean()} g proteína", color = MaterialTheme.colorScheme.onPrimaryContainer)
+                        Text("${daily.carbs.clean()} g carbohidratos · ${daily.fats.clean()} g grasas", color = MaterialTheme.colorScheme.onPrimaryContainer)
                     }
                 }
-            } else if (uiState.isSearching) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
-            } else {
-                uiState.searchResults.forEach { product ->
-                    ListItem(
-                        headlineContent = { Text(product.name) },
-                        supportingContent = { Text("${product.calories.toInt()} kcal/100g") },
-                        modifier = Modifier.clickable { viewModel.onProductSelected(product) }
-                    )
-                    HorizontalDivider()
+            }
+            Card(shape = RoundedCornerShape(22.dp), modifier = Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    ManualField(state.manualName, viewModel::onManualNameChanged, "Nombre o nota", KeyboardType.Text)
+                    ManualField(state.manualCalories, viewModel::onManualCaloriesChanged, "Calorías (kcal)")
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        ManualField(state.manualProteins, viewModel::onManualProteinsChanged, "Proteínas (g)", modifier = Modifier.weight(1f))
+                        ManualField(state.manualCarbs, viewModel::onManualCarbsChanged, "Carbos (g)", modifier = Modifier.weight(1f))
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        ManualField(state.manualFats, viewModel::onManualFatsChanged, "Grasas (g)", modifier = Modifier.weight(1f))
+                        ManualField(state.manualSugar, viewModel::onManualSugarChanged, "Azúcar (g)", modifier = Modifier.weight(1f))
+                    }
+                    Button(
+                        onClick = viewModel::saveManualEntry, enabled = !state.isSavingManual,
+                        modifier = Modifier.fillMaxWidth().height(52.dp)
+                    ) {
+                        if (state.isSavingManual) CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)
+                        else Text("Añadir al día de hoy")
+                    }
                 }
             }
-
+            state.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+            state.successMessage?.let { Text(it, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold) }
+            Spacer(Modifier.height(16.dp))
         }
     }
 }
+
+@Composable
+private fun ManualField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    keyboardType: KeyboardType = KeyboardType.Decimal,
+    modifier: Modifier = Modifier.fillMaxWidth()
+) {
+    OutlinedTextField(
+        value = value, onValueChange = onValueChange, label = { Text(label) }, singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType), modifier = modifier
+    )
+}
+
+private fun Double.clean() = if (this % 1.0 == 0.0) toInt().toString() else String.format("%.1f", this)
