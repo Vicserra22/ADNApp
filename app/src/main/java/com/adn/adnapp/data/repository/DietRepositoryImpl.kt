@@ -9,16 +9,25 @@ class DietRepositoryImpl(
     private val firestoreDataSource: FirestoreDataSource
 ) : DietRepository {
 
-    override suspend fun getAvailableDiets(): Result<List<Diet>> {
-        return try {
-            val diets = firestoreDataSource.getAvailableDiets()
-            Result.success(diets.ifEmpty { DefaultDiets.values })
-        } catch (_: Exception) {
-            Result.success(DefaultDiets.values)
+    override suspend fun getAvailableDiets(userId: String?): Result<List<Diet>> {
+        val remote = runCatching { firestoreDataSource.getAvailableDiets() }.getOrDefault(emptyList())
+        val custom = userId?.let {
+            runCatching { firestoreDataSource.getCustomDiets(it) }.getOrDefault(emptyList())
+        }.orEmpty()
+        val catalogue = linkedMapOf<String, Diet>()
+        DefaultDiets.values.forEach { catalogue[it.id] = it }
+        remote.forEach { diet ->
+            val fallback = DefaultDiets.values.firstOrNull { it.id == diet.id }
+            catalogue[diet.id] = diet.withFallback(fallback)
         }
+        custom.forEach { catalogue[it.id] = it }
+        return Result.success(catalogue.values.toList())
     }
 
-    override suspend fun getDiet(dietId: String): Result<Diet?> {
+    override suspend fun getDiet(dietId: String, userId: String?): Result<Diet?> {
+        if (dietId.startsWith("custom_") && userId != null) {
+            return runCatching { firestoreDataSource.getCustomDiet(userId, dietId) }
+        }
         // Existing accounts may contain an identifier from an older catalogue.
         // Keep their goals usable until they choose one of the current diets in Profile.
         val fallback = DefaultDiets.values.firstOrNull { it.id == dietId }
@@ -30,6 +39,9 @@ class DietRepositoryImpl(
             Result.success(fallback)
         }
     }
+
+    override suspend fun saveCustomDiet(userId: String, diet: Diet): Result<Unit> =
+        runCatching { firestoreDataSource.saveCustomDiet(userId, diet) }
 }
 
 private fun Diet.withFallback(fallback: Diet?): Diet = copy(

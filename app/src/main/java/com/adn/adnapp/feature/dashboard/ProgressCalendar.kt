@@ -2,6 +2,7 @@ package com.adn.adnapp.feature.dashboard
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -93,13 +94,19 @@ fun ProgressCalendar(
 private fun CalendarCell(
     day: LocalDate?, score: DayScore?, enabled: Boolean, onClick: () -> Unit, modifier: Modifier
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
     Box(modifier.aspectRatio(1f).padding(3.dp), contentAlignment = Alignment.Center) {
         if (day != null) {
             val color = score?.let { progressColor(it.total) }
                 ?: MaterialTheme.colorScheme.surfaceVariant
             Box(
                 Modifier.size(36.dp).background(color.copy(alpha = if (enabled) 1f else .35f), CircleShape)
-                    .clickable(enabled = enabled, onClick = onClick),
+                    .clickable(
+                        enabled = enabled,
+                        interactionSource = interactionSource,
+                        indication = null,
+                        onClick = onClick
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Text(day.dayOfMonth.toString(), color = if (score != null) Color.White

@@ -174,7 +174,7 @@ class ProfileViewModel(
                 return@launch
             }
             val profile = requireNotNull(profileResult.getOrNull())
-            val diets = dietRepository.getAvailableDiets().getOrDefault(emptyList())
+            val diets = dietRepository.getAvailableDiets(uid).getOrDefault(emptyList())
             val nutrition = nutritionRepository.getNutritionProfile(uid).getOrNull()
             _uiState.update {
                 it.withProfile(profile).copy(

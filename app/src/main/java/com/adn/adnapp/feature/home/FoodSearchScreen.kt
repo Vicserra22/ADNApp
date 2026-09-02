@@ -1,6 +1,7 @@
 package com.adn.adnapp.feature.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -12,6 +13,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -26,6 +29,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.adn.adnapp.data.model.entity.Product
@@ -33,12 +37,32 @@ import com.adn.adnapp.data.model.entity.ProductNutrient
 import com.adn.adnapp.core.ui.CompactTopBar
 import java.util.Locale
 import org.koin.androidx.compose.koinViewModel
+import com.google.mlkit.vision.barcode.common.Barcode
+import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
+import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FoodSearchScreen(viewModel: HomeViewModel = koinViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var infoProduct by remember { mutableStateOf<Product?>(null) }
+    var freshQuery by remember { mutableStateOf("") }
+    var freshCategory by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
+    val scanner = remember(context) {
+        GmsBarcodeScanning.getClient(
+            context,
+            GmsBarcodeScannerOptions.Builder()
+                .setBarcodeFormats(
+                    Barcode.FORMAT_EAN_8,
+                    Barcode.FORMAT_EAN_13,
+                    Barcode.FORMAT_UPC_A,
+                    Barcode.FORMAT_UPC_E
+                )
+                .enableAutoZoom()
+                .build()
+        )
+    }
 
     Scaffold(topBar = { CompactTopBar("Buscar alimentos") }) { padding ->
         LazyColumn(
@@ -47,28 +71,87 @@ fun FoodSearchScreen(viewModel: HomeViewModel = koinViewModel()) {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
-                Text(
-                    "Consulta productos en Open Food Facts. La información es colaborativa y puede estar incompleta.",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FoodSection.entries.forEach { section ->
+                        FilterChip(
+                            selected = state.foodSection == section,
+                            onClick = { viewModel.onFoodSectionChanged(section) },
+                            label = { Text(when (section) {
+                                FoodSection.PRODUCTS -> "Productos"
+                                FoodSection.FRESH -> "Frescos"
+                                FoodSection.SAVED -> "Guardados"
+                            }) },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
             }
-            item {
-                OutlinedTextField(
-                    value = state.searchQuery,
-                    onValueChange = viewModel::onSearchQueryChanged,
-                    label = { Text("Producto o marca") },
-                    placeholder = { Text("Ej. yogur natural Danone") },
-                    singleLine = true,
-                    enabled = !state.isSearching,
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                    keyboardActions = KeyboardActions(onSearch = { viewModel.searchFood() }),
-                    trailingIcon = {
-                        IconButton(onClick = viewModel::searchFood, enabled = !state.isSearching) {
-                            Icon(Icons.Default.Search, "Buscar")
+            when (state.foodSection) {
+                FoodSection.PRODUCTS -> {
+                    item {
+                        Text(
+                            "Busca productos envasados o escanea el código de barras.",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    item {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedTextField(
+                                value = state.searchQuery,
+                                onValueChange = viewModel::onSearchQueryChanged,
+                                label = { Text("Producto o marca") },
+                                placeholder = { Text("Ej. yogur natural Danone") },
+                                singleLine = true,
+                                enabled = !state.isSearching,
+                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                                keyboardActions = KeyboardActions(onSearch = { viewModel.searchFood() }),
+                                trailingIcon = {
+                                    IconButton(onClick = viewModel::searchFood, enabled = !state.isSearching) {
+                                        Icon(Icons.Default.Search, "Buscar")
+                                    }
+                                },
+                                modifier = Modifier.weight(1f)
+                            )
+                            FilledTonalButton(
+                                onClick = {
+                                    scanner.startScan()
+                                        .addOnSuccessListener { it.rawValue?.let(viewModel::onBarcodeScanned) }
+                                        .addOnFailureListener { viewModel.onBarcodeScanFailed() }
+                                },
+                                enabled = !state.isSearching,
+                                contentPadding = PaddingValues(horizontal = 12.dp),
+                                modifier = Modifier.height(56.dp)
+                            ) { Text("Escanear") }
                         }
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                    }
+                }
+                FoodSection.FRESH -> {
+                    item {
+                        Text("Alimentos sin marca · valores medios orientativos por 100 g.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    item {
+                        OutlinedTextField(
+                            value = freshQuery,
+                            onValueChange = { freshQuery = it },
+                            label = { Text("Filtrar alimento fresco") },
+                            leadingIcon = { Icon(Icons.Default.Search, null) },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                    item {
+                        val categories = state.freshFoods.flatMap { it.categories.take(1) }.distinct()
+                        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            FilterChip(selected = freshCategory == null, onClick = { freshCategory = null }, label = { Text("Todos") })
+                            categories.forEach { category ->
+                                FilterChip(selected = freshCategory == category, onClick = { freshCategory = category }, label = { Text(category) })
+                            }
+                        }
+                    }
+                }
+                FoodSection.SAVED -> item {
+                    Text("Favoritos y alimentos usados recientemente.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
             if (state.isSearching) item {
                 Row(Modifier.fillMaxWidth().padding(24.dp), horizontalArrangement = Arrangement.Center) {
@@ -83,14 +166,27 @@ fun FoodSearchScreen(viewModel: HomeViewModel = koinViewModel()) {
             state.successMessage?.let { message -> item {
                 Text(message, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
             } }
-            items(state.searchResults, key = { it.code }) { product ->
+            val visibleProducts = when (state.foodSection) {
+                FoodSection.PRODUCTS -> state.searchResults
+                FoodSection.FRESH -> state.freshFoods.filter { product ->
+                    (freshCategory == null || product.categories.firstOrNull() == freshCategory) &&
+                        (freshQuery.isBlank() || product.name.contains(freshQuery, ignoreCase = true))
+                }
+                FoodSection.SAVED -> (state.favoriteFoods + state.recentFoods).distinctBy { it.code }
+            }
+            if (state.foodSection == FoodSection.SAVED && visibleProducts.isEmpty()) item {
+                Text("Aún no tienes alimentos guardados. Marca el corazón de cualquier producto para encontrarlo aquí.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            items(visibleProducts, key = { it.code }) { product ->
                 ProductResultCard(
                     product = product,
                     onInfo = { infoProduct = product },
-                    onAdd = { viewModel.onProductSelected(product) }
+                    onAdd = { viewModel.onProductSelected(product) },
+                    isFavorite = product.code in state.favoriteCodes,
+                    onFavorite = { viewModel.toggleFavorite(product) }
                 )
             }
-            if (state.searchResults.isNotEmpty()) item {
+            if (state.foodSection == FoodSection.PRODUCTS && state.searchResults.isNotEmpty()) item {
                 Text(
                     "Valores por 100 g · Fuente: Open Food Facts",
                     style = MaterialTheme.typography.labelMedium,
@@ -115,7 +211,13 @@ fun FoodSearchScreen(viewModel: HomeViewModel = koinViewModel()) {
 }
 
 @Composable
-private fun ProductResultCard(product: Product, onInfo: () -> Unit, onAdd: () -> Unit) {
+private fun ProductResultCard(
+    product: Product,
+    onInfo: () -> Unit,
+    onAdd: () -> Unit,
+    isFavorite: Boolean,
+    onFavorite: () -> Unit
+) {
     Card(shape = RoundedCornerShape(22.dp), modifier = Modifier.fillMaxWidth().height(220.dp)) {
         Row(Modifier.fillMaxSize()) {
             Box(
@@ -141,8 +243,13 @@ private fun ProductResultCard(product: Product, onInfo: () -> Unit, onAdd: () ->
                         if (product.brands.isNotBlank()) Text(product.brands, style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
-                    IconButton(onClick = onInfo, modifier = Modifier.size(36.dp)) {
-                        Icon(Icons.Default.Info, "Información nutricional", tint = MaterialTheme.colorScheme.primary)
+                    Row {
+                        IconButton(onClick = onFavorite, modifier = Modifier.size(36.dp)) {
+                            Icon(if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder, "Favorito", tint = MaterialTheme.colorScheme.primary)
+                        }
+                        IconButton(onClick = onInfo, modifier = Modifier.size(36.dp)) {
+                            Icon(Icons.Default.Info, "Información nutricional", tint = MaterialTheme.colorScheme.primary)
+                        }
                     }
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {

@@ -41,7 +41,7 @@ fun DashboardScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val todayConsumption = state.history[state.selectedDate]
 
-    Scaffold(topBar = { CompactTopBar("Dashboard") }) { padding ->
+    Scaffold(topBar = { CompactTopBar("Análisis") }) { padding ->
         LazyColumn(
             Modifier.fillMaxSize().padding(padding),
             contentPadding = PaddingValues(16.dp),

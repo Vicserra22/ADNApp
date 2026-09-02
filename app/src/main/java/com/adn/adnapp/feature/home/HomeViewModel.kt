@@ -7,6 +7,11 @@ import com.adn.adnapp.data.model.entity.FoodEntry
 import com.adn.adnapp.data.model.entity.Product
 import com.adn.adnapp.domain.repository.AuthRepository
 import com.adn.adnapp.domain.repository.FoodRepository
+import com.adn.adnapp.domain.repository.UserRepository
+import com.adn.adnapp.domain.repository.NutritionRepository
+import com.adn.adnapp.domain.repository.DietRepository
+import com.adn.adnapp.domain.model.NutritionTargets
+import com.adn.adnapp.domain.service.GoalCalculator
 import com.adn.adnapp.data.repository.FoodSearchException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,6 +25,11 @@ import java.util.Locale
 data class HomeUiState(
     val searchQuery: String = "",
     val searchResults: List<Product> = emptyList(),
+    val freshFoods: List<Product> = emptyList(),
+    val recentFoods: List<Product> = emptyList(),
+    val favoriteFoods: List<Product> = emptyList(),
+    val favoriteCodes: Set<String> = emptySet(),
+    val foodSection: FoodSection = FoodSection.PRODUCTS,
     val isSearching: Boolean = false,
     val selectedProduct: Product? = null,
     val quantityToAdd: String = "",
@@ -31,13 +41,19 @@ data class HomeUiState(
     val manualSugar: String = "",
     val isSavingManual: Boolean = false,
     val dailyConsumption: DailyConsumption? = null,
+    val targets: NutritionTargets? = null,
     val error: String? = null,
     val successMessage: String? = null
 )
 
+enum class FoodSection { PRODUCTS, FRESH, SAVED }
+
 class HomeViewModel(
     private val foodRepository: FoodRepository,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val userRepository: UserRepository,
+    private val nutritionRepository: NutritionRepository,
+    private val dietRepository: DietRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -47,6 +63,41 @@ class HomeViewModel(
 
     init {
         observeDailyConsumption()
+        observeFoodLibrary()
+        loadTargets()
+    }
+
+    private fun observeFoodLibrary() {
+        val uid = authRepository.getCurrentUserId() ?: return
+        viewModelScope.launch {
+            foodRepository.observeFreshFoods().collect { foods ->
+                _uiState.update { it.copy(freshFoods = foods) }
+            }
+        }
+        viewModelScope.launch {
+            foodRepository.observeRecentFoods(uid).collect { foods ->
+                _uiState.update { it.copy(recentFoods = foods) }
+            }
+        }
+        viewModelScope.launch {
+            foodRepository.observeFavoriteFoods(uid).collect { foods ->
+                _uiState.update { it.copy(favoriteFoods = foods, favoriteCodes = foods.mapTo(mutableSetOf()) { food -> food.code }) }
+            }
+        }
+    }
+
+    fun onFoodSectionChanged(section: FoodSection) {
+        _uiState.update { it.copy(foodSection = section, error = null) }
+    }
+
+    private fun loadTargets() {
+        val uid = authRepository.getCurrentUserId() ?: return
+        viewModelScope.launch {
+            val profile = userRepository.getUserProfile(uid).getOrNull() ?: return@launch
+            val nutrition = nutritionRepository.getNutritionProfile(uid).getOrNull() ?: return@launch
+            val diet = dietRepository.getDiet(nutrition.dietId, uid).getOrNull() ?: return@launch
+            _uiState.update { it.copy(targets = GoalCalculator.targets(profile, diet)) }
+        }
     }
 
     private fun observeDailyConsumption() {
@@ -86,6 +137,34 @@ class HomeViewModel(
                     else -> "No se pudo conectar con Open Food Facts. Comprueba la conexión."
                 }
                 _uiState.update { it.copy(isSearching = false, error = message) }
+            }
+        }
+    }
+
+    fun onBarcodeScanned(barcode: String) {
+        if (_uiState.value.isSearching) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isSearching = true, error = null, successMessage = null) }
+            foodRepository.getFoodByBarcode(barcode).fold(
+                onSuccess = { product ->
+                    _uiState.update { it.copy(isSearching = false, selectedProduct = product) }
+                },
+                onFailure = {
+                    _uiState.update { it.copy(isSearching = false, error = "No encontramos ese código. Puedes buscarlo por nombre o añadirlo manualmente.") }
+                }
+            )
+        }
+    }
+
+    fun onBarcodeScanFailed() {
+        _uiState.update { it.copy(error = "No se pudo abrir el lector de códigos") }
+    }
+
+    fun toggleFavorite(product: Product) {
+        val uid = authRepository.getCurrentUserId() ?: return
+        viewModelScope.launch {
+            foodRepository.toggleFavorite(uid, product).onFailure {
+                _uiState.update { state -> state.copy(error = "No se pudo actualizar favoritos") }
             }
         }
     }
@@ -176,6 +255,7 @@ class HomeViewModel(
             val result = foodRepository.saveFoodEntry(uid, entry, dateKey)
             
             if (result.isSuccess) {
+                runCatching { foodRepository.recordProductUsed(uid, product) }
                 _uiState.update { 
                     it.copy(
                         selectedProduct = null, 

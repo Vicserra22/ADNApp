@@ -2,8 +2,10 @@ package com.adn.adnapp.core.di
 
 import com.adn.adnapp.core.constants.ApiConstants
 import com.adn.adnapp.data.remote.api.OpenFoodFactsApi
+import com.adn.adnapp.data.remote.api.FoodSearchApi
 import okhttp3.OkHttpClient
 import org.koin.dsl.module
+import org.koin.core.qualifier.named
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
@@ -24,12 +26,20 @@ val networkModule = module {
             .writeTimeout(30, TimeUnit.SECONDS)
             .build()
     }
-    single {
+    single(named("openFoodFacts")) {
         Retrofit.Builder()
             .baseUrl(ApiConstants.BASE_URL)
             .client(get())
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
-    single { get<Retrofit>().create(OpenFoodFactsApi::class.java) }
+    single(named("foodSearch")) {
+        Retrofit.Builder()
+            .baseUrl(ApiConstants.SEARCH_BASE_URL)
+            .client(get())
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+    single { get<Retrofit>(named("openFoodFacts")).create(OpenFoodFactsApi::class.java) }
+    single { get<Retrofit>(named("foodSearch")).create(FoodSearchApi::class.java) }
 }

@@ -4,6 +4,7 @@ import android.app.Application
 import com.adn.adnapp.core.di.appModule
 import com.adn.adnapp.core.di.networkModule
 import com.adn.adnapp.core.di.repositoryModule
+import com.adn.adnapp.core.di.localFoodModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 
@@ -12,7 +13,7 @@ class AdnApplication : Application() {
         super.onCreate()
         startKoin {
             androidContext(this@AdnApplication)
-            modules(appModule, networkModule, repositoryModule)
+            modules(appModule, networkModule, repositoryModule, localFoodModule)
         }
     }
 }

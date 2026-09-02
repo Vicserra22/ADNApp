@@ -79,33 +79,25 @@ class FirestoreDataSource(private val db: FirebaseFirestore) {
 
     suspend fun getAvailableDiets(): List<Diet> {
         val snapshot = db.collection(FirestoreKeys.DIETS).get().await()
-        return snapshot.documents.map { doc ->
-            Diet(
-                id = doc.id,
-                name = doc.getString(FirestoreKeys.NAME) ?: "",
-                calories = doc.getDouble(FirestoreKeys.CALORIES) ?: 0.0,
-                proteins = doc.getDouble(FirestoreKeys.PROTEINS) ?: 0.0,
-                carbs = doc.getDouble(FirestoreKeys.CARBS) ?: 0.0,
-                lipids = doc.getDouble(FirestoreKeys.FATS) ?: 0.0,
-                sugar = doc.getDouble(FirestoreKeys.SUGAR) ?: 0.0,
-                water = doc.getDouble(FirestoreKeys.WATER_ML) ?: 0.0
-            )
-        }
+        return snapshot.documents.map { it.toDiet() }
     }
 
     suspend fun getDiet(dietId: String): Diet? {
         val doc = db.collection(FirestoreKeys.DIETS).document(dietId).get().await()
         if (!doc.exists()) return null
-        return Diet(
-            id = doc.id,
-            name = doc.getString(FirestoreKeys.NAME) ?: "",
-            calories = doc.getDouble(FirestoreKeys.CALORIES) ?: 0.0,
-            proteins = doc.getDouble(FirestoreKeys.PROTEINS) ?: 0.0,
-            carbs = doc.getDouble(FirestoreKeys.CARBS) ?: 0.0,
-            lipids = doc.getDouble(FirestoreKeys.FATS) ?: 0.0,
-            sugar = doc.getDouble(FirestoreKeys.SUGAR) ?: 0.0,
-            water = doc.getDouble(FirestoreKeys.WATER_ML) ?: 0.0
-        )
+        return doc.toDiet()
+    }
+
+    suspend fun getCustomDiets(uid: String): List<Diet> =
+        customDietsRef(uid).get().await().documents.map { it.toDiet() }
+
+    suspend fun getCustomDiet(uid: String, dietId: String): Diet? {
+        val doc = customDietsRef(uid).document(dietId).get().await()
+        return if (doc.exists()) doc.toDiet() else null
+    }
+
+    suspend fun saveCustomDiet(uid: String, diet: Diet) {
+        customDietsRef(uid).document(diet.id).set(diet.toDietMap()).await()
     }
 
     suspend fun saveFoodEntryAndAggregate(uid: String, entry: FoodEntry, dateKey: String) {
@@ -232,7 +224,35 @@ class FirestoreDataSource(private val db: FirebaseFirestore) {
 
     private fun dailyConsumptionRef(uid: String, dateKey: String) = db.collection(FirestoreKeys.USERS)
         .document(uid).collection(FirestoreKeys.DAILY_CONSUMPTION).document(dateKey)
+
+    private fun customDietsRef(uid: String) = db.collection(FirestoreKeys.USERS)
+        .document(uid).collection(FirestoreKeys.CUSTOM_DIETS)
 }
+
+private fun com.google.firebase.firestore.DocumentSnapshot.toDiet() = Diet(
+    id = id,
+    name = getString(FirestoreKeys.NAME) ?: "",
+    description = getString(FirestoreKeys.DESCRIPTION) ?: "",
+    imageUrl = getString(FirestoreKeys.IMAGE_URL) ?: "",
+    calories = getDouble(FirestoreKeys.CALORIES) ?: 0.0,
+    proteins = getDouble(FirestoreKeys.PROTEINS) ?: 0.0,
+    carbs = getDouble(FirestoreKeys.CARBS) ?: 0.0,
+    lipids = getDouble(FirestoreKeys.FATS) ?: 0.0,
+    sugar = getDouble(FirestoreKeys.SUGAR) ?: 0.0,
+    water = getDouble(FirestoreKeys.WATER_ML) ?: 0.0
+)
+
+private fun Diet.toDietMap(): Map<String, Any> = mapOf(
+    FirestoreKeys.NAME to name,
+    FirestoreKeys.DESCRIPTION to description,
+    FirestoreKeys.IMAGE_URL to imageUrl,
+    FirestoreKeys.CALORIES to calories,
+    FirestoreKeys.PROTEINS to proteins,
+    FirestoreKeys.CARBS to carbs,
+    FirestoreKeys.FATS to lipids,
+    FirestoreKeys.SUGAR to sugar,
+    FirestoreKeys.WATER_ML to water
+)
 
 private fun FoodEntry.toFirestoreMap(): Map<String, Any> = mapOf(
     "id" to id,

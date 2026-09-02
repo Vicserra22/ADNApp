@@ -9,6 +9,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -32,16 +35,7 @@ fun HomeScreen(viewModel: HomeViewModel = koinViewModel()) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             state.dailyConsumption?.let { daily ->
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-                    shape = RoundedCornerShape(22.dp), modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                        Text("Resumen de hoy", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
-                        Text("${daily.calories.clean()} kcal · ${daily.proteins.clean()} g proteína", color = MaterialTheme.colorScheme.onPrimaryContainer)
-                        Text("${daily.carbs.clean()} g carbohidratos · ${daily.fats.clean()} g grasas", color = MaterialTheme.colorScheme.onPrimaryContainer)
-                    }
-                }
+                TodayProgressCard(daily, state.targets)
             }
             Card(shape = RoundedCornerShape(22.dp), modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -68,6 +62,82 @@ fun HomeScreen(viewModel: HomeViewModel = koinViewModel()) {
             state.successMessage?.let { Text(it, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold) }
             Spacer(Modifier.height(16.dp))
         }
+    }
+}
+
+@Composable
+private fun TodayProgressCard(
+    daily: com.adn.adnapp.data.model.entity.DailyConsumption,
+    targets: com.adn.adnapp.domain.model.NutritionTargets?
+) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+        shape = RoundedCornerShape(22.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(13.dp)) {
+            Text(
+                "Resumen de hoy",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+            if (targets == null) {
+                LinearProgressIndicator(Modifier.fillMaxWidth().height(5.dp))
+                Text("Cargando los objetivos de tu dieta…", style = MaterialTheme.typography.bodySmall)
+            } else {
+                MacroProgress("Calorías", daily.calories, targets.calories, "kcal")
+                MacroProgress("Proteínas", daily.proteins, targets.proteins, "g")
+                MacroProgress("Carbohidratos", daily.carbs, targets.carbs, "g")
+                MacroProgress("Grasas", daily.fats, targets.fats, "g")
+            }
+        }
+    }
+}
+
+@Composable
+private fun MacroProgress(label: String, actual: Double, target: Double, unit: String) {
+    val validTarget = target.coerceAtLeast(0.0)
+    val ratio = if (validTarget > 0) actual / validTarget else 0.0
+    val exceeded = validTarget > 0 && actual > validTarget
+    val color = macroProgressColor(ratio, exceeded)
+    val difference = kotlin.math.abs(validTarget - actual)
+
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(label, fontWeight = FontWeight.SemiBold)
+            Text("${actual.clean()} / ${validTarget.clean()} $unit", style = MaterialTheme.typography.bodySmall)
+        }
+        LinearProgressIndicator(
+            progress = { ratio.toFloat().coerceIn(0f, 1f) },
+            modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(99.dp)),
+            color = color,
+            trackColor = color.copy(alpha = .16f)
+        )
+        Text(
+            when {
+                exceeded -> "Exceso: ${difference.clean()} $unit"
+                difference < .05 -> "Objetivo alcanzado"
+                else -> "Te faltan ${difference.clean()} $unit"
+            },
+            style = MaterialTheme.typography.labelSmall,
+            color = color,
+            fontWeight = if (exceeded) FontWeight.Bold else FontWeight.Medium
+        )
+    }
+}
+
+private fun macroProgressColor(ratio: Double, exceeded: Boolean): Color {
+    if (exceeded) return Color(0xFF741D35)
+    val red = Color(0xFFD64545)
+    val orange = Color(0xFFF28C38)
+    val yellow = Color(0xFFE2B93B)
+    val green = Color(0xFF398F60)
+    val value = ratio.coerceIn(0.0, 1.0).toFloat()
+    return when {
+        value < .33f -> lerp(red, orange, value / .33f)
+        value < .66f -> lerp(orange, yellow, (value - .33f) / .33f)
+        else -> lerp(yellow, green, (value - .66f) / .34f)
     }
 }
 

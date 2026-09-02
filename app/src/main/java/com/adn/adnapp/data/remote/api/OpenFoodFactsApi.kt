@@ -2,6 +2,7 @@ package com.adn.adnapp.data.remote.api
 
 import com.adn.adnapp.data.model.dto.FoodResponseDto
 import retrofit2.http.GET
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface OpenFoodFactsApi {
@@ -14,4 +15,15 @@ interface OpenFoodFactsApi {
         @Query("fields") fields: String = "code,product_name,image_front_small_url,image_front_url,brands,quantity,serving_size,ingredients_text,allergens_tags,categories_tags,nutrition_grade_fr,nova_group,nutriments",
         @Query("page_size") pageSize: Int = 15
     ): FoodResponseDto
+
+    @GET("api/v2/product/{barcode}.json")
+    suspend fun getFoodByBarcode(
+        @Path("barcode") barcode: String,
+        @Query("fields") fields: String = "code,product_name,image_front_small_url,image_front_url,brands,quantity,serving_size,ingredients_text,allergens_tags,categories_tags,nutrition_grade_fr,nova_group,nutriments"
+    ): BarcodeFoodResponseDto
 }
+
+data class BarcodeFoodResponseDto(
+    val status: Int = 0,
+    val product: com.adn.adnapp.data.model.dto.ProductDto? = null
+)

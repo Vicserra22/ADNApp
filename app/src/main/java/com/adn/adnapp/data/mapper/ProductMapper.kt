@@ -1,11 +1,30 @@
 package com.adn.adnapp.data.mapper
 
 import com.adn.adnapp.data.model.dto.ProductDto
+import com.adn.adnapp.data.model.dto.SearchFoodHit
 import com.adn.adnapp.data.model.entity.Product
 import com.adn.adnapp.data.model.entity.ProductNutrient
 import com.google.gson.JsonObject
 
 object ProductMapper {
+    fun mapToDomain(hit: SearchFoodHit): Product = mapToDomain(
+        ProductDto(
+            code = hit.code,
+            name = hit.spanishName ?: hit.name ?: hit.spanishGenericName,
+            smallImageUrl = hit.smallImageUrl,
+            imageUrl = hit.imageUrl,
+            brands = hit.brands?.joinToString(),
+            quantity = hit.quantity,
+            servingSize = hit.servingSize,
+            ingredients = hit.spanishIngredients ?: hit.ingredients,
+            allergens = hit.allergens,
+            categories = hit.categories,
+            nutritionGrade = hit.nutriScoreGrade ?: hit.nutritionGrade,
+            novaGroup = hit.novaGroup,
+            nutriments = hit.nutriments
+        )
+    )
+
     fun mapToDomain(dto: ProductDto): Product {
         val nutrients = dto.nutriments.toNutrients()
         return Product(

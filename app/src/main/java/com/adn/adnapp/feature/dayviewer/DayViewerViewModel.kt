@@ -183,7 +183,7 @@ class DayViewerViewModel(
         viewModelScope.launch {
             val profile = userRepository.getUserProfile(uid).getOrNull() ?: return@launch
             val nutrition = nutritionRepository.getNutritionProfile(uid).getOrNull() ?: return@launch
-            val diet = dietRepository.getDiet(nutrition.dietId).getOrNull() ?: return@launch
+            val diet = dietRepository.getDiet(nutrition.dietId, uid).getOrNull() ?: return@launch
             val targets = GoalCalculator.targets(profile, diet)
             scoreProfile = profile
             _uiState.update {

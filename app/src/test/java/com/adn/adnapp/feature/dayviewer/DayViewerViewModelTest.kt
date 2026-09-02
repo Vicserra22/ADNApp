@@ -52,7 +52,7 @@ class DayViewerViewModelTest {
             Result.success(UserProfile(age = 30, weight = 75.0, height = 178.0, gender = "Hombre"))
         coEvery { nutritionRepository.getNutritionProfile("uid") } returns
             Result.success(NutritionProfile(dietId = "balanced", onboardingCompleted = true))
-        coEvery { dietRepository.getDiet("balanced") } returns Result.success(
+        coEvery { dietRepository.getDiet("balanced", "uid") } returns Result.success(
             Diet(id = "balanced", calories = 2_100.0, proteins = 120.0, carbs = 230.0,
                 lipids = 70.0, sugar = 50.0, water = 2_000.0)
         )

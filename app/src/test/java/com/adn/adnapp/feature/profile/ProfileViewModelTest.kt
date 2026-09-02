@@ -44,7 +44,7 @@ class ProfileViewModelTest {
         Dispatchers.setMain(dispatcher)
         every { auth.getCurrentUserId() } returns "uid"
         coEvery { users.getUserProfile("uid") } returns Result.success(profile)
-        coEvery { diets.getAvailableDiets() } returns Result.success(listOf(Diet(id = "balanced", name = "Equilibrada")))
+        coEvery { diets.getAvailableDiets("uid") } returns Result.success(listOf(Diet(id = "balanced", name = "Equilibrada")))
         coEvery { nutrition.getNutritionProfile("uid") } returns Result.success(NutritionProfile("balanced", true))
         every { weights.observeWeightHistory("uid") } returns flowOf(emptyList())
     }

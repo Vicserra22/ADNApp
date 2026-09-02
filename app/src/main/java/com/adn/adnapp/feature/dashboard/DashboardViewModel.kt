@@ -63,7 +63,7 @@ class DashboardViewModel(
         viewModelScope.launch {
             val profile = userRepository.getUserProfile(uid).getOrNull()
             val nutrition = nutritionRepository.getNutritionProfile(uid).getOrNull()
-            val diet = nutrition?.dietId?.let { dietRepository.getDiet(it).getOrNull() }
+            val diet = nutrition?.dietId?.let { dietRepository.getDiet(it, uid).getOrNull() }
             val targets = if (profile != null && diet != null) GoalCalculator.targets(profile, diet) else null
             _uiState.update { it.copy(profile = profile, targets = targets) }
             foodRepository.observeConsumptionHistory(uid)

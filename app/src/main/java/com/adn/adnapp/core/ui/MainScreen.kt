@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,7 +22,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
@@ -71,40 +71,43 @@ fun MainScreen(onNavigateToSplash: () -> Unit, onNavigateToDietSelection: () -> 
     var selectedArea by remember { mutableStateOf<AppArea?>(null) }
     val items = listOf(
         BallItem(Screen.Home, Icons.Default.Home),
-        BallItem(Screen.Dashboard, Icons.AutoMirrored.Filled.List),
+        BallItem(Screen.Dashboard),
         BallItem(null, center = true),
         BallItem(Screen.Profile, Icons.Default.Person),
         BallItem(Screen.Soon)
     )
     Box(Modifier.fillMaxSize()) {
-        Scaffold(bottomBar = {
-            Surface(tonalElevation = 4.dp) {
-                Row(
-                    Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 12.dp, vertical = 10.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    val entry by navController.currentBackStackEntryAsState()
-                    val route = entry?.destination?.route
-                    items.forEach { item ->
-                        NavigationBall(item, selected = item.screen?.route == route) {
-                            if (item.center) {
-                                treeOpen = !treeOpen
-                                if (!treeOpen) selectedArea = null
-                            } else item.screen?.let { screen ->
-                                treeOpen = false
-                                selectedArea = null
-                                navController.navigate(screen.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState = true
+        Scaffold(
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
+            bottomBar = {
+                Surface(tonalElevation = 4.dp) {
+                    Row(
+                        Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 12.dp, vertical = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        val entry by navController.currentBackStackEntryAsState()
+                        val route = entry?.destination?.route
+                        items.forEach { item ->
+                            NavigationBall(item, selected = item.screen?.route == route) {
+                                if (item.center) {
+                                    treeOpen = !treeOpen
+                                    if (!treeOpen) selectedArea = null
+                                } else item.screen?.let { screen ->
+                                    treeOpen = false
+                                    selectedArea = null
+                                    navController.navigate(screen.route) {
+                                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-        }) { padding ->
+        ) { padding ->
             NavHost(navController, Screen.Home.route, Modifier.padding(padding)) {
                 composable(Screen.Home.route) { HomeScreen() }
                 composable(Screen.FoodSearch.route) { FoodSearchScreen() }
@@ -163,6 +166,26 @@ private fun NavigationBall(item: BallItem, selected: Boolean, onClick: () -> Uni
         } else if (item.icon != null) {
             Icon(item.icon, item.screen?.route, tint = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.size(25.dp))
+        } else if (item.screen == Screen.Dashboard) {
+            AnalysisIcon()
+        }
+    }
+}
+
+@Composable
+private fun AnalysisIcon() {
+    val color = MaterialTheme.colorScheme.onPrimary
+    Canvas(Modifier.size(25.dp)) {
+        val barWidth = size.width * .2f
+        val gap = size.width * .12f
+        listOf(.45f, .72f, 1f).forEachIndexed { index, heightRatio ->
+            val height = size.height * heightRatio
+            drawRoundRect(
+                color = color,
+                topLeft = androidx.compose.ui.geometry.Offset(index * (barWidth + gap), size.height - height),
+                size = androidx.compose.ui.geometry.Size(barWidth, height),
+                cornerRadius = androidx.compose.ui.geometry.CornerRadius(barWidth / 2f)
+            )
         }
     }
 }
