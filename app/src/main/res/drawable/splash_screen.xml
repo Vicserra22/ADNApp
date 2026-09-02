@@ -1,8 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="@color/adn_light_green" />
+    <item>
+        <color android:color="@color/secondary" />
+    </item>
     <item>
         <bitmap
-            android:gravity="center"
-            android:src="@drawable/adn_logo" />
+            android:src="@drawable/adn_logo"
+            android:gravity="center" />
     </item>
 </layer-list>
