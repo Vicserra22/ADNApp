@@ -6,6 +6,7 @@ import com.adn.adnapp.data.model.entity.Diet
 import com.adn.adnapp.domain.repository.AuthRepository
 import com.adn.adnapp.domain.repository.DietRepository
 import com.adn.adnapp.domain.repository.NutritionRepository
+import com.adn.adnapp.domain.model.MacroTolerance
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -28,6 +29,7 @@ data class CustomDietDraft(
 data class DietSelectionUiState(
     val diets: List<Diet> = emptyList(),
     val selectedDietId: String? = null,
+    val macroTolerance: MacroTolerance = MacroTolerance.NORMAL,
     val showCustomDietCreator: Boolean = false,
     val customDiet: CustomDietDraft = CustomDietDraft(),
     val isCreatingDiet: Boolean = false,
@@ -62,7 +64,15 @@ class DietSelectionViewModel(
             val uid = authRepository.getCurrentUserId()
             val result = dietRepository.getAvailableDiets(uid)
             if (result.isSuccess) {
-                _uiState.update { it.copy(diets = result.getOrNull() ?: emptyList(), isLoading = false) }
+                val nutrition = uid?.let { nutritionRepository.getNutritionProfile(it).getOrNull() }
+                _uiState.update {
+                    it.copy(
+                        diets = result.getOrNull() ?: emptyList(),
+                        selectedDietId = nutrition?.dietId?.takeIf(String::isNotBlank),
+                        macroTolerance = nutrition?.macroTolerance ?: MacroTolerance.NORMAL,
+                        isLoading = false
+                    )
+                }
             } else {
                 _uiState.update { it.copy(isLoading = false, error = "Error al cargar dietas") }
             }
@@ -75,6 +85,10 @@ class DietSelectionViewModel(
 
     fun onDietSelected(dietId: String) {
         _uiState.update { it.copy(selectedDietId = dietId) }
+    }
+
+    fun onMacroToleranceChanged(value: MacroTolerance) {
+        _uiState.update { it.copy(macroTolerance = value, error = null) }
     }
 
     fun showCustomDietCreator(show: Boolean) = _uiState.update {
@@ -159,7 +173,9 @@ class DietSelectionViewModel(
                 return@launch
             }
 
-            val result = nutritionRepository.completeOnboarding(uid, selectedId)
+            val result = nutritionRepository.completeOnboarding(
+                uid, selectedId, _uiState.value.macroTolerance
+            )
             if (result.isSuccess) {
                 _uiState.update { it.copy(isSaving = false) }
                 _eventFlow.emit(DietSelectionEvent.NavigateToMain)

@@ -50,7 +50,7 @@ fun NutritionProgressCharts(
     history: Map<String, DailyConsumption>,
     scoreOf: (DailyConsumption) -> Double,
     modifier: Modifier = Modifier,
-    endDate: LocalDate = LocalDate.now()
+    endDate: LocalDate = LocalDate.now().minusDays(1)
 ) {
     var period by remember { mutableStateOf(ProgressPeriod.WEEK) }
     val model = remember(history, period, endDate, scoreOf) {
@@ -75,7 +75,7 @@ fun NutritionProgressCharts(
                 Column {
                     Text("Tu progreso", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                     Text(
-                        "Cumplimiento de objetivos",
+                        "Días completos · hasta " + endDate,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

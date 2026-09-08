@@ -7,6 +7,7 @@ import com.adn.adnapp.data.model.entity.UserProfile
 import com.adn.adnapp.data.model.entity.WeightEntry
 import com.adn.adnapp.domain.model.BodyGoal
 import com.adn.adnapp.domain.model.Importance
+import com.adn.adnapp.domain.model.MacroTolerance
 import com.adn.adnapp.domain.repository.AuthRepository
 import com.adn.adnapp.domain.repository.DietRepository
 import com.adn.adnapp.domain.repository.NutritionRepository
@@ -25,6 +26,8 @@ data class ProfileUiState(
     val userProfile: UserProfile? = null,
     val diets: List<Diet> = emptyList(),
     val selectedDietId: String = "",
+    val macroTolerance: MacroTolerance = MacroTolerance.NORMAL,
+    val savedMacroTolerance: MacroTolerance = MacroTolerance.NORMAL,
     val weightHistory: List<WeightEntry> = emptyList(),
     val isLoading: Boolean = true,
     val isEditing: Boolean = false,
@@ -64,7 +67,13 @@ class ProfileViewModel(
 
     fun startEditing() = _uiState.update { it.copy(isEditing = true, error = null, message = null) }
     fun cancelEditing() = _uiState.update { state ->
-        state.userProfile?.let { state.withProfile(it).copy(isEditing = false, error = null) }
+        state.userProfile?.let {
+            state.withProfile(it).copy(
+                isEditing = false,
+                macroTolerance = state.savedMacroTolerance,
+                error = null
+            )
+        }
             ?: state.copy(isEditing = false)
     }
     fun onNameChanged(value: String) = formUpdate { copy(name = value) }
@@ -78,6 +87,7 @@ class ProfileViewModel(
     fun onSportsImportanceChanged(value: Importance) = formUpdate { copy(sportsImportance = value) }
     fun onGoalsImportanceChanged(value: Importance) = formUpdate { copy(goalsImportance = value) }
     fun onDietChanged(value: String) = formUpdate { copy(selectedDietId = value) }
+    fun onMacroToleranceChanged(value: MacroTolerance) = formUpdate { copy(macroTolerance = value) }
     fun onNewWeightChanged(value: String) = formUpdate { copy(newWeight = value.decimalInput()) }
     fun onNewWeightDateChanged(value: String) = formUpdate { copy(newWeightDate = value) }
     fun clearMessage() = _uiState.update { it.copy(message = null) }
@@ -108,14 +118,17 @@ class ProfileViewModel(
             _uiState.update { it.copy(isSaving = true, error = null, message = null) }
             val profileResult = userRepository.saveUserProfile(uid, updated)
             val dietResult = if (state.selectedDietId.isBlank()) Result.success(Unit)
-                else nutritionRepository.updateDiet(uid, state.selectedDietId)
+                else nutritionRepository.updateDiet(uid, state.selectedDietId, state.macroTolerance)
             if (profileResult.isSuccess && dietResult.isSuccess) {
                 if (previous.weight != updated.weight) {
                     weightRepository.saveWeight(uid, WeightEntry(LocalDate.now().toString(), updated.weight))
                 }
                 _uiState.update {
                     it.withProfile(updated).copy(
-                        isSaving = false, isEditing = false, message = "Perfil actualizado"
+                        isSaving = false,
+                        isEditing = false,
+                        savedMacroTolerance = state.macroTolerance,
+                        message = "Perfil actualizado"
                     )
                 }
             } else {
@@ -178,7 +191,11 @@ class ProfileViewModel(
             val nutrition = nutritionRepository.getNutritionProfile(uid).getOrNull()
             _uiState.update {
                 it.withProfile(profile).copy(
-                    diets = diets, selectedDietId = nutrition?.dietId.orEmpty(), isLoading = false
+                    diets = diets,
+                    selectedDietId = nutrition?.dietId.orEmpty(),
+                    macroTolerance = nutrition?.macroTolerance ?: MacroTolerance.NORMAL,
+                    savedMacroTolerance = nutrition?.macroTolerance ?: MacroTolerance.NORMAL,
+                    isLoading = false
                 )
             }
             weightRepository.observeWeightHistory(uid)

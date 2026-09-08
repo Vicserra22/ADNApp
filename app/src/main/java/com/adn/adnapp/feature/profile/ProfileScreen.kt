@@ -58,18 +58,21 @@ import com.adn.adnapp.data.model.entity.UserProfile
 import com.adn.adnapp.data.model.entity.WeightEntry
 import com.adn.adnapp.domain.model.BodyGoal
 import com.adn.adnapp.domain.model.Importance
+import com.adn.adnapp.domain.model.MacroTolerance
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import org.koin.androidx.compose.koinViewModel
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
     viewModel: ProfileViewModel = koinViewModel(),
-    onNavigateToSplash: () -> Unit
+    onNavigateToSplash: () -> Unit,
+    onBack: (() -> Unit)? = null
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var showWeightDatePicker by remember { mutableStateOf(false) }
@@ -77,7 +80,7 @@ fun ProfileScreen(
         viewModel.eventFlow.collect { if (it is ProfileEvent.NavigateToSplash) onNavigateToSplash() }
     }
 
-    Scaffold(topBar = { CompactTopBar(stringResource(R.string.title_profile)) }) { padding ->
+    Scaffold(topBar = { CompactTopBar(stringResource(R.string.title_profile), onBack) }) { padding ->
         when {
             state.isLoading -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
@@ -173,6 +176,7 @@ private fun ProfileSummary(state: ProfileUiState) {
             InfoRow("Medidas", "${profile.weight.format()} kg · ${profile.height.format()} cm")
             InfoRow("Peso objetivo", "${profile.targetWeight.format()} kg")
             InfoRow("Dieta", state.diets.firstOrNull { it.id == state.selectedDietId }?.name ?: "Sin seleccionar")
+            InfoRow("Tolerancia de macros", state.macroTolerance.label())
             InfoRow("Prioridades", "Nutrición ${profile.nutritionImportance.label().lowercase()}, deporte ${profile.sportsImportance.label().lowercase()}")
         }
     }
@@ -212,6 +216,7 @@ private fun EditableProfile(state: ProfileUiState, viewModel: ProfileViewModel) 
                     FilterChip(selected = state.selectedDietId == diet.id, onClick = { viewModel.onDietChanged(diet.id) },
                         label = { Text(diet.name) }, modifier = Modifier.fillMaxWidth())
                 }
+                MacroToleranceEditor(state.macroTolerance, viewModel::onMacroToleranceChanged)
             }
             Text("Importancia para tu valoración diaria", fontWeight = FontWeight.SemiBold)
             ImportanceEditor("Nutrición", state.nutritionImportance, viewModel::onNutritionImportanceChanged)
@@ -228,6 +233,46 @@ private fun EditableProfile(state: ProfileUiState, viewModel: ProfileViewModel) 
             }
         }
     }
+}
+
+@Composable
+private fun MacroToleranceEditor(
+    value: MacroTolerance,
+    onValueChange: (MacroTolerance) -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text("Tolerancia al superar objetivos", fontWeight = FontWeight.SemiBold)
+        Text(
+            "Ajusta cuándo el exceso de calorías, carbohidratos y grasas reduce tu valoración.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Slider(
+            value = value.ordinal.toFloat(),
+            onValueChange = {
+                onValueChange(MacroTolerance.entries[it.roundToInt().coerceIn(0, 2)])
+            },
+            valueRange = 0f..2f,
+            steps = 1
+        )
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            MacroTolerance.entries.forEach { option ->
+                Text(
+                    option.label(),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = if (option == value) FontWeight.Bold else FontWeight.Normal,
+                    color = if (option == value) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+private fun MacroTolerance.label() = when (this) {
+    MacroTolerance.PERMISSIVE -> "Permisivo"
+    MacroTolerance.NORMAL -> "Normal"
+    MacroTolerance.STRICT -> "Estricto"
 }
 
 @Composable

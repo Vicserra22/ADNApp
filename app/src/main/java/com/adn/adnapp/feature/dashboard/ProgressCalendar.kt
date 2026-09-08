@@ -1,6 +1,7 @@
 package com.adn.adnapp.feature.dashboard
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -25,6 +26,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -44,13 +47,26 @@ fun ProgressCalendar(
     onDaySelected: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var month by remember { mutableStateOf(YearMonth.now()) }
+    var monthKey by rememberSaveable { mutableStateOf(YearMonth.now().toString()) }
+    val month = YearMonth.parse(monthKey)
     val today = LocalDate.now()
     Card(modifier.fillMaxWidth()) {
-        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(Modifier.padding(14.dp).pointerInput(monthKey) {
+            var distance = 0f
+            detectHorizontalDragGestures(
+                onDragStart = { distance = 0f },
+                onHorizontalDrag = { change, delta -> change.consume(); distance += delta },
+                onDragEnd = {
+                    val threshold = 56.dp.toPx()
+                    if (distance > threshold) monthKey = month.minusMonths(1).toString()
+                    else if (distance < -threshold && month < YearMonth.now())
+                        monthKey = month.plusMonths(1).toString()
+                }
+            )
+        }, verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween) {
-                IconButton(onClick = { month = month.minusMonths(1) }) {
+                IconButton(onClick = { monthKey = month.minusMonths(1).toString() }) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, "Mes anterior")
                 }
                 Text(
@@ -58,7 +74,7 @@ fun ProgressCalendar(
                         .replaceFirstChar { it.titlecase() } + " ${month.year}",
                     style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold
                 )
-                IconButton(onClick = { month = month.plusMonths(1) }, enabled = month < YearMonth.now()) {
+                IconButton(onClick = { monthKey = month.plusMonths(1).toString() }, enabled = month < YearMonth.now()) {
                     Icon(Icons.AutoMirrored.Filled.ArrowForward, "Mes siguiente")
                 }
             }

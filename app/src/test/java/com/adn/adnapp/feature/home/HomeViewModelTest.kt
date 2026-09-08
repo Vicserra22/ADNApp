@@ -24,6 +24,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import java.time.LocalDate
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModelTest {
@@ -78,5 +79,54 @@ class HomeViewModelTest {
         advanceUntilIdle()
 
         assertEquals(product, viewModel.uiState.value.selectedProduct)
+    }
+
+    @Test fun midnight_requiresChoiceAndSavesOnlyOnceToSelectedDate() = runTest {
+        var now = LocalDate.of(2026, 9, 5)
+        val viewModel = HomeViewModel(foods, auth, users, nutrition, diets) { now }
+        advanceUntilIdle()
+        viewModel.onManualCaloriesChanged("200")
+        now = now.plusDays(1)
+        viewModel.saveManualEntry()
+        advanceUntilIdle()
+        coVerify(exactly = 0) { foods.saveFoodEntry(any(), any(), any()) }
+        assertEquals("2026-09-05", viewModel.uiState.value.dateChoice?.screenDate)
+        assertEquals("2026-09-06", viewModel.uiState.value.dateChoice?.today)
+        coEvery { foods.saveFoodEntry("uid", any(), "2026-09-06") } returns Result.success(Unit)
+        viewModel.confirmEntryDate("2026-09-06")
+        viewModel.confirmEntryDate("2026-09-06")
+        advanceUntilIdle()
+        coVerify(exactly = 1) { foods.saveFoodEntry("uid", match { it.calories == 200.0 }, "2026-09-06") }
+    }
+
+    @Test fun midnight_cancelKeepsDraft_andScreenDateCanBeChosen() = runTest {
+        var now = LocalDate.of(2026, 9, 5)
+        val viewModel = HomeViewModel(foods, auth, users, nutrition, diets) { now }
+        advanceUntilIdle()
+        viewModel.onManualCaloriesChanged("123")
+        now = now.plusDays(1)
+        viewModel.saveManualEntry()
+        viewModel.cancelDateChoice()
+        advanceUntilIdle()
+        assertEquals("123", viewModel.uiState.value.manualCalories)
+        coVerify(exactly = 0) { foods.saveFoodEntry(any(), any(), any()) }
+        coEvery { foods.saveFoodEntry("uid", any(), "2026-09-05") } returns Result.success(Unit)
+        viewModel.saveManualEntry()
+        viewModel.confirmEntryDate("2026-09-05")
+        advanceUntilIdle()
+        coVerify(exactly = 1) { foods.saveFoodEntry("uid", any(), "2026-09-05") }
+    }
+
+    @Test fun foodSearchAfterMidnight_alsoRequiresDateChoice() = runTest {
+        var now = LocalDate.of(2026, 9, 5)
+        val viewModel = HomeViewModel(foods, auth, users, nutrition, diets) { now }
+        advanceUntilIdle()
+        viewModel.onProductSelected(Product("123", "Yogur", null, 60.0, 3.0, 4.0, 5.0, 4.0))
+        viewModel.onQuantityChanged("100")
+        now = now.plusDays(1)
+        viewModel.addFoodEntry()
+        advanceUntilIdle()
+        coVerify(exactly = 0) { foods.saveFoodEntry(any(), any(), any()) }
+        assertEquals("2026-09-06", viewModel.uiState.value.dateChoice?.today)
     }
 }

@@ -22,6 +22,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.adn.adnapp.data.model.entity.FoodEntry
 import com.adn.adnapp.core.ui.CompactTopBar
+import com.adn.adnapp.core.ui.NutritionProgressCard
+import com.adn.adnapp.domain.model.DailyActivityLevel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -34,6 +36,9 @@ fun DayViewerScreen(date: String, onBack: () -> Unit) {
     val viewModel: DayViewerViewModel = koinViewModel(parameters = { parametersOf(date) })
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var pendingDelete by remember { mutableStateOf<FoodEntry?>(null) }
+    state.dateChoice?.let {
+        com.adn.adnapp.core.ui.EntryDateSheet(it, viewModel::confirmEntryDate, viewModel::cancelDateChoice)
+    }
 
     pendingDelete?.let { entry ->
         AlertDialog(
@@ -53,14 +58,15 @@ fun DayViewerScreen(date: String, onBack: () -> Unit) {
         }
     ) { padding ->
         Column(
-            Modifier.fillMaxSize().padding(padding).imePadding().verticalScroll(rememberScrollState())
+            Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             if (state.isLoading) CircularProgressIndicator(Modifier.align(Alignment.CenterHorizontally))
             else {
+                ActivityLevelSelector(state.consumption.activityLevel, viewModel::setActivityLevel)
                 DayRating(state)
-                TargetSummary(state)
+                NutritionProgressCard(state.consumption, state.targets)
                 SugarDanger(state)
                 WaterCard(state, viewModel)
             }
@@ -96,6 +102,30 @@ fun DayViewerScreen(date: String, onBack: () -> Unit) {
 }
 
 @Composable
+private fun ActivityLevelSelector(selected: DailyActivityLevel, onSelected: (DailyActivityLevel) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text("Actividad de este día", fontWeight = FontWeight.Bold)
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            DailyActivityLevel.entries.forEach { level ->
+                FilterChip(
+                    selected = selected == level,
+                    onClick = { onSelected(level) },
+                    label = { Text(level.dayLabel()) },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+    }
+}
+
+private fun DailyActivityLevel.dayLabel() = when (this) {
+    DailyActivityLevel.SEDENTARY -> "Reposo"
+    DailyActivityLevel.LIGHT -> "Normal"
+    DailyActivityLevel.ACTIVE -> "Entreno"
+    DailyActivityLevel.VERY_ACTIVE -> "Intenso"
+}
+
+@Composable
 private fun DayRating(state: DayViewerUiState) {
     val score = state.score ?: return
     val percent = score.percent
@@ -113,20 +143,6 @@ private fun DayRating(state: DayViewerUiState) {
                 Text(label, fontWeight = FontWeight.Bold)
                 Text("Cumplimiento global del día", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-        }
-    }
-}
-
-@Composable
-private fun TargetSummary(state: DayViewerUiState) {
-    val target = state.targets
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            Text("Nutrición", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            TargetBar("Calorías", state.consumption.calories, target?.calories, "kcal")
-            TargetBar("Proteínas", state.consumption.proteins, target?.proteins, "g")
-            TargetBar("Carbohidratos", state.consumption.carbs, target?.carbs, "g")
-            TargetBar("Grasas", state.consumption.fats, target?.fats, "g")
         }
     }
 }

@@ -6,6 +6,19 @@ enum class Importance(val weight: Int) {
     VERY_LOW(1), LOW(2), NORMAL(3), IMPORTANT(4), VERY_IMPORTANT(5)
 }
 
+/** Daily activity used to estimate energy needs as BMR × PAL. */
+enum class DailyActivityLevel(val pal: Double) {
+    SEDENTARY(1.45),
+    LIGHT(1.55),
+    ACTIVE(1.75),
+    VERY_ACTIVE(2.05)
+}
+
+/** How much room the user wants above a macro target before it is penalised. */
+enum class MacroTolerance {
+    PERMISSIVE, NORMAL, STRICT
+}
+
 data class NutritionTargets(
     val calories: Double,
     val proteins: Double,
@@ -16,10 +29,9 @@ data class NutritionTargets(
     val caloriesGoal: NutrientGoal = NutrientGoal.range(calories * .90, calories, calories * 1.10),
     val proteinGoal: NutrientGoal = NutrientGoal.minimum(
         minimum = proteins * .90,
-        target = proteins,
-        toleratedMaximum = proteins * 1.25
+        target = proteins
     ),
-    val carbsGoal: NutrientGoal = NutrientGoal.range(carbs * .85, carbs, carbs * 1.15),
+    val carbsGoal: NutrientGoal = NutrientGoal.range(carbs * .80, carbs, carbs * 1.20),
     val fatsGoal: NutrientGoal = NutrientGoal.range(fats * .80, fats, fats * 1.20),
     val sugarGoal: NutrientGoal = NutrientGoal.maximum(sugarMax),
     val waterGoal: NutrientGoal = NutrientGoal.minimum(waterMl, waterMl)
@@ -32,11 +44,12 @@ data class NutrientGoal(
     val minimum: Double?,
     val target: Double,
     val maximum: Double?,
-    val rule: GoalRule
+    val rule: GoalRule,
+    val criticalMaximum: Double? = null
 ) {
     companion object {
-        fun range(minimum: Double, target: Double, maximum: Double) =
-            NutrientGoal(minimum, target, maximum, GoalRule.RANGE)
+        fun range(minimum: Double, target: Double, maximum: Double, criticalMaximum: Double? = null) =
+            NutrientGoal(minimum, target, maximum, GoalRule.RANGE, criticalMaximum)
 
         fun minimum(minimum: Double, target: Double, toleratedMaximum: Double? = null) =
             NutrientGoal(minimum, target, toleratedMaximum, GoalRule.MINIMUM)
