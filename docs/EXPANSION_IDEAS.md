@@ -10,6 +10,7 @@ La aplicación debe crecer como un sistema de áreas conectadas, pero cada módu
 - **Plan semanal:** objetivos sencillos (días activos, minutos, pasos o sesiones) y calendario que muestre cumplimiento sin castigar los días de descanso planificado.
 - **Biblioteca de rutinas:** fuerza, movilidad, caminar/correr y ejercicios sin material. Cada rutina con duración estimada, dificultad y sustituciones.
 - **Progreso:** volumen semanal, constancia, mejores marcas y carga progresiva. Evitar comparar disciplinas incompatibles con una única métrica.
+- **Historial por ejercicio:** guardar por fecha el ejercicio realizado, cada serie, repeticiones y peso usado. Al preparar una nueva sesión, mostrar la sesión anterior y la evolución para detectar progresos o posibles estancamientos sin emitir diagnósticos automáticos.
 - **Recuperación:** sueño percibido, fatiga, dolor y disposición para entrenar. Si hay fatiga alta, recomendar bajar intensidad o descansar, no dar diagnósticos.
 
 ### Ramas del árbol
@@ -17,6 +18,7 @@ La aplicación debe crecer como un sistema de áreas conectadas, pero cada módu
 - **Actividad** → registrar, historial, sesión rápida.
 - **Rutinas** → explorar, rutina de hoy, crear rutina.
 - **Progreso** → semana/mes, marcas, constancia.
+- **Historial de fuerza** → ejercicios, series y peso por día, comparación con la sesión anterior, progresión y posibles estancamientos.
 - **Recuperación** → check-in, descanso, movilidad.
 - **Objetivos** → días activos, pasos, prueba o evento.
 

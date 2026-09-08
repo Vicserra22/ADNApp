@@ -1,6 +1,7 @@
 package com.adn.adnapp.feature.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -35,6 +36,8 @@ import coil.compose.AsyncImage
 import com.adn.adnapp.data.model.entity.Product
 import com.adn.adnapp.data.model.entity.ProductNutrient
 import com.adn.adnapp.core.ui.CompactTopBar
+import com.adn.adnapp.core.ui.EntryDateSheet
+import com.adn.adnapp.core.ui.readableDate
 import java.util.Locale
 import org.koin.androidx.compose.koinViewModel
 import com.google.mlkit.vision.barcode.common.Barcode
@@ -70,6 +73,8 @@ fun FoodSearchScreen(viewModel: HomeViewModel = koinViewModel()) {
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            item { Text("Registro para " + state.screenDate.readableDate(),
+                style = MaterialTheme.typography.labelMedium) }
             item {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FoodSection.entries.forEach { section ->
@@ -95,7 +100,7 @@ fun FoodSearchScreen(viewModel: HomeViewModel = koinViewModel()) {
                         )
                     }
                     item {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             OutlinedTextField(
                                 value = state.searchQuery,
                                 onValueChange = viewModel::onSearchQueryChanged,
@@ -105,23 +110,29 @@ fun FoodSearchScreen(viewModel: HomeViewModel = koinViewModel()) {
                                 enabled = !state.isSearching,
                                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                                 keyboardActions = KeyboardActions(onSearch = { viewModel.searchFood() }),
-                                trailingIcon = {
-                                    IconButton(onClick = viewModel::searchFood, enabled = !state.isSearching) {
-                                        Icon(Icons.Default.Search, "Buscar")
-                                    }
-                                },
-                                modifier = Modifier.weight(1f)
+                                trailingIcon = { Icon(Icons.Default.Search, null) },
+                                modifier = Modifier.fillMaxWidth()
                             )
-                            FilledTonalButton(
-                                onClick = {
-                                    scanner.startScan()
-                                        .addOnSuccessListener { it.rawValue?.let(viewModel::onBarcodeScanned) }
-                                        .addOnFailureListener { viewModel.onBarcodeScanFailed() }
-                                },
-                                enabled = !state.isSearching,
-                                contentPadding = PaddingValues(horizontal = 12.dp),
-                                modifier = Modifier.height(56.dp)
-                            ) { Text("Escanear") }
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Button(
+                                    onClick = viewModel::searchFood,
+                                    enabled = !state.isSearching,
+                                    modifier = Modifier.weight(1f).height(48.dp)
+                                ) {
+                                    Icon(Icons.Default.Search, null)
+                                    Spacer(Modifier.width(8.dp))
+                                    Text("Buscar")
+                                }
+                                FilledTonalIconButton(
+                                    onClick = {
+                                        scanner.startScan()
+                                            .addOnSuccessListener { it.rawValue?.let(viewModel::onBarcodeScanned) }
+                                            .addOnFailureListener { viewModel.onBarcodeScanFailed() }
+                                    },
+                                    enabled = !state.isSearching,
+                                    modifier = Modifier.size(48.dp)
+                                ) { BarcodeIcon() }
+                            }
                         }
                     }
                 }
@@ -200,13 +211,34 @@ fun FoodSearchScreen(viewModel: HomeViewModel = koinViewModel()) {
     infoProduct?.let { product ->
         ProductInfoSheet(product = product, onDismiss = { infoProduct = null })
     }
-    state.selectedProduct?.let { product ->
+    state.selectedProduct?.takeIf { state.dateChoice == null }?.let { product ->
         AddProductSheet(
             product = product, quantity = state.quantityToAdd,
             onQuantityChange = viewModel::onQuantityChanged,
             onAdd = viewModel::addFoodEntry,
             onDismiss = { viewModel.onProductSelectedDismissed() }
         )
+    }
+    state.dateChoice?.let {
+        EntryDateSheet(it, viewModel::confirmEntryDate, viewModel::cancelDateChoice)
+    }
+}
+
+@Composable
+private fun BarcodeIcon() {
+    val color = MaterialTheme.colorScheme.onSecondaryContainer
+    Canvas(Modifier.size(23.dp)) {
+        val widths = listOf(.08f, .14f, .07f, .12f, .06f, .15f, .08f)
+        var x = size.width * .05f
+        widths.forEachIndexed { index, fraction ->
+            val width = size.width * fraction
+            drawRect(
+                color = color,
+                topLeft = androidx.compose.ui.geometry.Offset(x, if (index % 2 == 0) 0f else size.height * .12f),
+                size = androidx.compose.ui.geometry.Size(width, if (index % 2 == 0) size.height else size.height * .76f)
+            )
+            x += width + size.width * .045f
+        }
     }
 }
 

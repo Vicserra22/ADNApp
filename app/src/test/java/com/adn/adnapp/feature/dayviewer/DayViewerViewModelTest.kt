@@ -113,6 +113,7 @@ class DayViewerViewModelTest {
     }
 
     private fun createViewModel() = DayViewerViewModel(
-        date, foodRepository, authRepository, nutritionRepository, dietRepository, userRepository
+        date, foodRepository, authRepository, nutritionRepository, dietRepository, userRepository,
+        today = { java.time.LocalDate.parse(date) }
     )
 }

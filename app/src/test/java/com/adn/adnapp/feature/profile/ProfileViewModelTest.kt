@@ -4,6 +4,7 @@ import com.adn.adnapp.data.model.entity.Diet
 import com.adn.adnapp.data.model.entity.NutritionProfile
 import com.adn.adnapp.data.model.entity.UserProfile
 import com.adn.adnapp.domain.model.BodyGoal
+import com.adn.adnapp.domain.model.MacroTolerance
 import com.adn.adnapp.domain.repository.AuthRepository
 import com.adn.adnapp.domain.repository.DietRepository
 import com.adn.adnapp.domain.repository.NutritionRepository
@@ -53,7 +54,7 @@ class ProfileViewModelTest {
 
     @Test fun saveProfile_persistsEditedGoalAndDiet() = runTest {
         coEvery { users.saveUserProfile("uid", any()) } returns Result.success(Unit)
-        coEvery { nutrition.updateDiet("uid", "balanced") } returns Result.success(Unit)
+        coEvery { nutrition.updateDiet("uid", "balanced", MacroTolerance.NORMAL) } returns Result.success(Unit)
         val viewModel = createViewModel()
         advanceUntilIdle()
 
@@ -63,7 +64,7 @@ class ProfileViewModelTest {
         advanceUntilIdle()
 
         coVerify { users.saveUserProfile("uid", match { it.bodyGoal == BodyGoal.LOSE_WEIGHT }) }
-        coVerify { nutrition.updateDiet("uid", "balanced") }
+        coVerify { nutrition.updateDiet("uid", "balanced", MacroTolerance.NORMAL) }
         assertFalse(viewModel.uiState.value.isEditing)
         assertEquals("Perfil actualizado", viewModel.uiState.value.message)
     }

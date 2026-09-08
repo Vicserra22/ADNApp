@@ -11,15 +11,20 @@ import com.adn.adnapp.domain.repository.NutritionRepository
 import com.adn.adnapp.domain.repository.UserRepository
 import com.adn.adnapp.domain.model.DayScore
 import com.adn.adnapp.domain.model.NutritionTargets
+import com.adn.adnapp.domain.model.MacroTolerance
+import com.adn.adnapp.domain.model.DailyActivityLevel
 import com.adn.adnapp.domain.service.GoalCalculator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import com.adn.adnapp.domain.model.EntryDateChoice
 
 data class DayViewerUiState(
     val date: String,
+    val dateChoice: EntryDateChoice? = null,
     val consumption: DailyConsumption = DailyConsumption(date = date),
     val entries: List<FoodEntry> = emptyList(),
     val targets: NutritionTargets? = null,
@@ -48,7 +53,8 @@ class DayViewerViewModel(
     private val authRepository: AuthRepository,
     private val nutritionRepository: NutritionRepository,
     private val dietRepository: DietRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val today: () -> LocalDate = { LocalDate.now() }
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(DayViewerUiState(date = date))
     val uiState = _uiState.asStateFlow()
@@ -145,11 +151,56 @@ class DayViewerViewModel(
         }
     }
 
-    private fun persistEntry(entry: FoodEntry, isNew: Boolean, successMessage: String = "Entrada guardada") {
+    fun setActivityLevel(level: DailyActivityLevel) {
         val uid = currentUid() ?: return
+        _uiState.update {
+            val daily = it.consumption.copy(activityLevel = level)
+            val targets = targetsFor(level) ?: it.targets
+            it.copy(
+                consumption = daily,
+                targets = targets,
+                score = targets?.let { value -> calculateScore(daily, value) },
+                error = null
+            )
+        }
+        viewModelScope.launch {
+            foodRepository.setDailyActivityLevel(uid, date, level).onFailure {
+                _uiState.update { state -> state.copy(error = "No se pudo guardar la actividad del día") }
+            }
+        }
+    }
+
+    private var pendingEntry: FoodEntry? = null
+
+    fun cancelDateChoice() {
+        pendingEntry = null
+        _uiState.update { it.copy(dateChoice = null) }
+    }
+
+    fun confirmEntryDate(selectedDate: String) {
+        val choice = _uiState.value.dateChoice ?: return
+        if (selectedDate != choice.screenDate && selectedDate != choice.today) return
+        val entry = pendingEntry ?: return
+        pendingEntry = null
+        _uiState.update { it.copy(dateChoice = null) }
+        persistEntry(entry, true, "Entrada guardada en " + selectedDate, selectedDate)
+    }
+
+    private fun persistEntry(
+        entry: FoodEntry, isNew: Boolean, successMessage: String = "Entrada guardada",
+        confirmedDate: String? = null
+    ) {
+        if (_uiState.value.isSaving || pendingEntry != null) return
+        if (isNew && confirmedDate == null && date != today().toString()) {
+            pendingEntry = entry
+            _uiState.update { it.copy(dateChoice = EntryDateChoice(date, today().toString())) }
+            return
+        }
+        val uid = currentUid() ?: return
+        _uiState.update { it.copy(isSaving = true) }
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true, error = null, savedMessage = null) }
-            val result = if (isNew) foodRepository.saveFoodEntry(uid, entry, date)
+            val result = if (isNew) foodRepository.saveFoodEntry(uid, entry, confirmedDate ?: date)
             else foodRepository.updateFoodEntry(uid, entry, date)
             result.fold(
                 onSuccess = {
@@ -169,9 +220,11 @@ class DayViewerViewModel(
             foodRepository.observeDailyConsumption(uid, date)
                 .catch { _uiState.update { state -> state.copy(isLoading = false, error = "No se pudo cargar el día") } }
                 .collect { daily -> _uiState.update {
+                    val targets = targetsFor(daily.activityLevel) ?: it.targets
                     it.copy(
                         consumption = daily,
-                        score = if (it.targets != null) calculateScore(daily, it.targets) else null,
+                        targets = targets,
+                        score = targets?.let { value -> calculateScore(daily, value) },
                         isLoading = false
                     )
                 } }
@@ -184,8 +237,12 @@ class DayViewerViewModel(
             val profile = userRepository.getUserProfile(uid).getOrNull() ?: return@launch
             val nutrition = nutritionRepository.getNutritionProfile(uid).getOrNull() ?: return@launch
             val diet = dietRepository.getDiet(nutrition.dietId, uid).getOrNull() ?: return@launch
-            val targets = GoalCalculator.targets(profile, diet)
             scoreProfile = profile
+            scoreDiet = diet
+            scoreTolerance = nutrition.macroTolerance
+            val targets = GoalCalculator.targets(
+                profile, diet, _uiState.value.consumption.activityLevel, scoreTolerance
+            )
             _uiState.update {
                 it.copy(targets = targets, score = GoalCalculator.score(it.consumption, targets, profile))
             }
@@ -193,6 +250,14 @@ class DayViewerViewModel(
     }
 
     private var scoreProfile: com.adn.adnapp.data.model.entity.UserProfile? = null
+    private var scoreDiet: com.adn.adnapp.data.model.entity.Diet? = null
+    private var scoreTolerance: MacroTolerance = MacroTolerance.NORMAL
+
+    private fun targetsFor(level: DailyActivityLevel): NutritionTargets? {
+        val profile = scoreProfile ?: return null
+        val diet = scoreDiet ?: return null
+        return GoalCalculator.targets(profile, diet, level, scoreTolerance)
+    }
 
     private fun calculateScore(consumption: DailyConsumption, targets: NutritionTargets): DayScore? =
         scoreProfile?.let { GoalCalculator.score(consumption, targets, it) }

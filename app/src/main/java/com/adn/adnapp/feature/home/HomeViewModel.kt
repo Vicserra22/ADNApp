@@ -21,8 +21,12 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.time.LocalDate
+import com.adn.adnapp.domain.model.EntryDateChoice
 
 data class HomeUiState(
+    val screenDate: String = LocalDate.now().toString(),
+    val dateChoice: EntryDateChoice? = null,
     val searchQuery: String = "",
     val searchResults: List<Product> = emptyList(),
     val freshFoods: List<Product> = emptyList(),
@@ -53,10 +57,11 @@ class HomeViewModel(
     private val authRepository: AuthRepository,
     private val userRepository: UserRepository,
     private val nutritionRepository: NutritionRepository,
-    private val dietRepository: DietRepository
+    private val dietRepository: DietRepository,
+    private val today: () -> LocalDate = { LocalDate.now() }
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(HomeUiState())
+    private val _uiState = MutableStateFlow(HomeUiState(screenDate = today().toString()))
     val uiState = _uiState.asStateFlow()
     
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
@@ -96,13 +101,17 @@ class HomeViewModel(
             val profile = userRepository.getUserProfile(uid).getOrNull() ?: return@launch
             val nutrition = nutritionRepository.getNutritionProfile(uid).getOrNull() ?: return@launch
             val diet = dietRepository.getDiet(nutrition.dietId, uid).getOrNull() ?: return@launch
-            _uiState.update { it.copy(targets = GoalCalculator.targets(profile, diet)) }
+            _uiState.update {
+                it.copy(targets = GoalCalculator.targets(
+                    profile, diet, macroTolerance = nutrition.macroTolerance
+                ))
+            }
         }
     }
 
     private fun observeDailyConsumption() {
         val uid = authRepository.getCurrentUserId() ?: return
-        val dateKey = dateFormat.format(Date())
+        val dateKey = _uiState.value.screenDate
         
         viewModelScope.launch {
             foodRepository.observeDailyConsumption(uid, dateKey)
@@ -184,30 +193,13 @@ class HomeViewModel(
             _uiState.update { it.copy(error = "Añade al menos una cantidad válida mayor que cero") }
             return
         }
-        val uid = authRepository.getCurrentUserId()
-        if (uid == null) {
-            _uiState.update { it.copy(error = "Usuario no autenticado") }
-            return
-        }
-        viewModelScope.launch {
-            _uiState.update { it.copy(isSavingManual = true, error = null, successMessage = null) }
-            foodRepository.saveFoodEntry(
-                uid,
+        requestEntry(
                 FoodEntry(
                     name = state.manualName.ifBlank { "Ajuste manual" },
                     calories = values[0]!!, proteins = values[1]!!, carbs = values[2]!!,
                     fats = values[3]!!, sugar = values[4]!!, kind = FoodEntry.KIND_MANUAL
-                ),
-                dateFormat.format(Date())
-            ).fold(
-                onSuccess = { _uiState.update { it.copy(
-                    manualName = "", manualCalories = "", manualProteins = "", manualCarbs = "",
-                    manualFats = "", manualSugar = "", isSavingManual = false,
-                    successMessage = "Datos añadidos al día de hoy"
-                ) } },
-                onFailure = { _uiState.update { it.copy(isSavingManual = false, error = "No se pudieron guardar los datos") } }
-            )
-        }
+                ), product = null
+        )
     }
 
     fun onProductSelected(product: Product) {
@@ -232,13 +224,6 @@ class HomeViewModel(
             return
         }
 
-        viewModelScope.launch {
-            val uid = authRepository.getCurrentUserId()
-            if (uid == null) {
-                _uiState.update { it.copy(error = "Usuario no autenticado") }
-                return@launch
-            }
-
             val factor = quantity / 100.0
             val entry = FoodEntry(
                 productId = product.code,
@@ -251,23 +236,65 @@ class HomeViewModel(
                 sugar = product.sugars * factor
             )
 
-            val dateKey = dateFormat.format(Date())
-            val result = foodRepository.saveFoodEntry(uid, entry, dateKey)
-            
-            if (result.isSuccess) {
-                runCatching { foodRepository.recordProductUsed(uid, product) }
-                _uiState.update { 
-                    it.copy(
-                        selectedProduct = null, 
-                        quantityToAdd = "", 
-                        searchQuery = "", 
-                        searchResults = emptyList(),
-                        successMessage = "Alimento añadido correctamente"
-                    )
+            requestEntry(entry, product)
+    }
+
+    private data class PendingEntry(val entry: FoodEntry, val product: Product?)
+    private var pendingEntry: PendingEntry? = null
+
+    private fun requestEntry(entry: FoodEntry, product: Product?) {
+        if (_uiState.value.isSavingManual || pendingEntry != null) return
+        val currentDate = today().toString()
+        val screenDate = _uiState.value.screenDate
+        val pending = PendingEntry(entry, product)
+        if (screenDate != currentDate) {
+            pendingEntry = pending
+            _uiState.update { it.copy(dateChoice = EntryDateChoice(screenDate, currentDate)) }
+        } else persistEntry(pending, screenDate)
+    }
+
+    fun cancelDateChoice() {
+        pendingEntry = null
+        _uiState.update { it.copy(dateChoice = null) }
+    }
+
+    fun confirmEntryDate(date: String) {
+        val pending = pendingEntry ?: return
+        val choice = _uiState.value.dateChoice ?: return
+        if (date != choice.screenDate && date != choice.today) return
+        // The displayed options are immutable dates, including if midnight passes again.
+        pendingEntry = null
+        _uiState.update { it.copy(dateChoice = null) }
+        persistEntry(pending, date)
+    }
+
+    private fun persistEntry(pending: PendingEntry, date: String) {
+        val uid = authRepository.getCurrentUserId() ?: run {
+            _uiState.update { it.copy(error = "Usuario no autenticado") }
+            return
+        }
+        _uiState.update { it.copy(isSavingManual = true, error = null, successMessage = null) }
+        viewModelScope.launch {
+            foodRepository.saveFoodEntry(uid, pending.entry, date).fold(
+                onSuccess = {
+                    pending.product?.let { runCatching { foodRepository.recordProductUsed(uid, it) } }
+                    _uiState.update {
+                        if (pending.product == null) it.copy(
+                            manualName = "", manualCalories = "", manualProteins = "", manualCarbs = "",
+                            manualFats = "", manualSugar = "", isSavingManual = false,
+                            successMessage = if (date == today().toString()) "Datos añadidos al día de hoy"
+                                else "Datos añadidos al " + date
+                        ) else it.copy(
+                            selectedProduct = null, quantityToAdd = "", searchQuery = "",
+                            searchResults = emptyList(), isSavingManual = false,
+                            successMessage = "Alimento añadido al " + date
+                        )
+                    }
+                },
+                onFailure = {
+                    _uiState.update { it.copy(isSavingManual = false, error = "No se pudo guardar la entrada") }
                 }
-            } else {
-                _uiState.update { it.copy(error = "Error al añadir alimento") }
-            }
+            )
         }
     }
 

@@ -4,8 +4,10 @@ import com.adn.adnapp.data.model.entity.DailyConsumption
 import com.adn.adnapp.data.model.entity.Diet
 import com.adn.adnapp.data.model.entity.UserProfile
 import com.adn.adnapp.domain.model.BodyGoal
+import com.adn.adnapp.domain.model.DailyActivityLevel
 import com.adn.adnapp.domain.model.GoalRule
 import com.adn.adnapp.domain.model.Importance
+import com.adn.adnapp.domain.model.MacroTolerance
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -42,7 +44,7 @@ class GoalCalculatorTest {
     @Test
     fun preset_usesMifflinAndScalesDietCompositionToPersonalCalories() {
         val targets = GoalCalculator.targets(profile, balanced)
-        val expectedCalories = (10 * 75.0 + 6.25 * 178.0 - 5 * 30 + 5) * 1.35
+        val expectedCalories = (10 * 75.0 + 6.25 * 178.0 - 5 * 30 + 5) * DailyActivityLevel.LIGHT.pal
         val presetMacroCalories = balanced.proteins * 4 + balanced.carbs * 4 + balanced.lipids * 9
         val scale = expectedCalories / presetMacroCalories
 
@@ -58,23 +60,66 @@ class GoalCalculatorTest {
     }
 
     @Test
-    fun protein_doesNotPenaliseASlightExcess() {
+    fun proteinExcess_doesNotPenaliseTheDailyScore() {
         val targets = GoalCalculator.targets(profile, balanced)
-        val day = atTargets(targets).copy(proteins = targets.proteins * 1.10)
+        val day = atTargets(targets).copy(proteins = targets.proteins * 3.0)
 
         assertEquals(1.0, GoalCalculator.score(day, targets, profile).proteins, 0.0)
     }
 
     @Test
-    fun lowCarbPreset_hasAStrictCarbohydrateMaximum() {
+    fun dailyActivity_changesTargetsWithoutChangingTheSavedDiet() {
+        val rest = GoalCalculator.targets(profile, balanced, DailyActivityLevel.SEDENTARY)
+        val normal = GoalCalculator.targets(profile, balanced, DailyActivityLevel.LIGHT)
+        val training = GoalCalculator.targets(profile, balanced, DailyActivityLevel.ACTIVE)
+        val intense = GoalCalculator.targets(profile, balanced, DailyActivityLevel.VERY_ACTIVE)
+
+        assertTrue(rest.calories < normal.calories)
+        assertTrue(normal.calories < training.calories)
+        assertTrue(training.calories < intense.calories)
+        assertEquals(2_100.0, balanced.calories, 0.0)
+    }
+
+    @Test
+    fun customDiet_isExactOnNormalDay_andScalesForTrainingDay() {
+        val custom = balanced.copy(id = "custom_personal")
+
+        val normal = GoalCalculator.targets(profile, custom, DailyActivityLevel.LIGHT)
+        val training = GoalCalculator.targets(profile, custom, DailyActivityLevel.ACTIVE)
+
+        assertEquals(custom.calories, normal.calories, 0.0)
+        assertTrue(training.calories > normal.calories)
+        assertTrue(training.carbs > normal.carbs)
+    }
+
+    @Test
+    fun lowCarbPreset_keepsANarrowerCarbohydrateMargin() {
         val lowCarb = balanced.copy(id = "low_carb", carbs = 120.0, lipids = 105.0)
         val targets = GoalCalculator.targets(profile, lowCarb)
         val atMaximum = atTargets(targets)
         val overMaximum = atMaximum.copy(carbs = targets.carbs * 1.25)
 
-        assertEquals(targets.carbs, targets.carbsGoal.maximum!!, 0.0)
+        assertEquals(targets.carbs * 1.10, targets.carbsGoal.maximum!!, 0.001)
         assertEquals(1.0, GoalCalculator.score(atMaximum, targets, profile).carbs, 0.0)
         assertTrue(GoalCalculator.score(overMaximum, targets, profile).carbs < 1.0)
+    }
+
+    @Test
+    fun macroTolerance_changesUpperLimits_butNeverAddsAProteinMaximum() {
+        val permissive = GoalCalculator.targets(
+            profile, balanced, macroTolerance = MacroTolerance.PERMISSIVE
+        )
+        val normal = GoalCalculator.targets(
+            profile, balanced, macroTolerance = MacroTolerance.NORMAL
+        )
+        val strict = GoalCalculator.targets(
+            profile, balanced, macroTolerance = MacroTolerance.STRICT
+        )
+
+        assertTrue(permissive.carbsGoal.maximum!! > normal.carbsGoal.maximum!!)
+        assertTrue(normal.carbsGoal.maximum!! > strict.carbsGoal.maximum!!)
+        assertTrue(permissive.fatsGoal.criticalMaximum!! > strict.fatsGoal.criticalMaximum!!)
+        assertEquals(null, strict.proteinGoal.maximum)
     }
 
     @Test

@@ -1,5 +1,8 @@
 package com.adn.adnapp.feature.registration.dietselection
 
+import com.adn.adnapp.data.model.entity.Diet
+import com.adn.adnapp.data.model.entity.NutritionProfile
+import com.adn.adnapp.domain.model.MacroTolerance
 import com.adn.adnapp.domain.repository.AuthRepository
 import com.adn.adnapp.domain.repository.DietRepository
 import com.adn.adnapp.domain.repository.NutritionRepository
@@ -32,6 +35,7 @@ class DietSelectionViewModelTest {
         Dispatchers.setMain(dispatcher)
         every { auth.getCurrentUserId() } returns "uid"
         coEvery { diets.getAvailableDiets("uid") } returns Result.success(emptyList())
+        coEvery { nutrition.getNutritionProfile("uid") } returns Result.success(null)
     }
 
     @After fun tearDown() = Dispatchers.resetMain()
@@ -61,5 +65,26 @@ class DietSelectionViewModelTest {
         val state = viewModel.uiState.value
         assertEquals(state.diets.single().id, state.selectedDietId)
         assertTrue(!state.showCustomDietCreator)
+    }
+
+    @Test
+    fun completingSelection_persistsTheChosenTolerance() = runTest {
+        coEvery { diets.getAvailableDiets("uid") } returns Result.success(
+            listOf(Diet(id = "balanced", name = "Equilibrada"))
+        )
+        coEvery { nutrition.getNutritionProfile("uid") } returns Result.success(
+            NutritionProfile("balanced", true, MacroTolerance.NORMAL)
+        )
+        coEvery {
+            nutrition.completeOnboarding("uid", "balanced", MacroTolerance.STRICT)
+        } returns Result.success(Unit)
+        val viewModel = DietSelectionViewModel(diets, nutrition, auth)
+        advanceUntilIdle()
+
+        viewModel.onMacroToleranceChanged(MacroTolerance.STRICT)
+        viewModel.onCompleteClicked()
+        advanceUntilIdle()
+
+        coVerify { nutrition.completeOnboarding("uid", "balanced", MacroTolerance.STRICT) }
     }
 }

@@ -12,6 +12,7 @@ import com.adn.adnapp.data.remote.api.OpenFoodFactsApi
 import com.adn.adnapp.data.remote.api.FoodSearchApi
 import com.adn.adnapp.data.remote.firebase.FirestoreDataSource
 import com.adn.adnapp.domain.repository.FoodRepository
+import com.adn.adnapp.domain.model.DailyActivityLevel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.delay
@@ -140,6 +141,12 @@ class FoodRepositoryImpl(
 
     override suspend fun deleteFoodEntry(uid: String, entryId: String, dateKey: String): Result<Unit> =
         runCatching { firestoreDataSource.deleteFoodEntryAndAggregate(uid, entryId, dateKey) }
+
+    override suspend fun setDailyActivityLevel(
+        uid: String,
+        dateKey: String,
+        level: DailyActivityLevel
+    ): Result<Unit> = runCatching { firestoreDataSource.setDailyActivityLevel(uid, dateKey, level) }
 
     override fun observeFoodEntries(uid: String, dateKey: String): Flow<List<FoodEntry>> =
         firestoreDataSource.observeFoodEntries(uid, dateKey)

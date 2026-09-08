@@ -23,6 +23,8 @@ import androidx.compose.ui.unit.dp
 import com.adn.adnapp.R
 import com.adn.adnapp.core.ui.CompactTopBar
 import com.adn.adnapp.data.model.entity.Diet
+import com.adn.adnapp.domain.model.MacroTolerance
+import kotlin.math.roundToInt
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -66,7 +68,12 @@ fun DietSelectionScreen(
                     onClick = { viewModel.showCustomDietCreator(true) },
                     modifier = Modifier.fillMaxWidth().height(48.dp)
                 ) { Text("+ Crear dieta personalizada") }
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(10.dp))
+                MacroToleranceSelector(
+                    value = uiState.macroTolerance,
+                    onValueChange = viewModel::onMacroToleranceChanged
+                )
+                Spacer(Modifier.height(10.dp))
                 LazyColumn(
                     modifier = Modifier.weight(1f),
                     contentPadding = PaddingValues(bottom = 8.dp),
@@ -104,6 +111,53 @@ fun DietSelectionScreen(
     if (uiState.showCustomDietCreator) {
         CustomDietDialog(uiState, viewModel)
     }
+}
+
+@Composable
+private fun MacroToleranceSelector(
+    value: MacroTolerance,
+    onValueChange: (MacroTolerance) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+    ) {
+        Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
+            Text("Tolerancia al superar objetivos", fontWeight = FontWeight.Bold)
+            Text(
+                "Define cuándo un exceso de calorías, carbohidratos o grasas empieza a penalizar. La proteína no se penaliza por exceso.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSecondaryContainer
+            )
+            Slider(
+                value = value.ordinal.toFloat(),
+                onValueChange = { index ->
+                    onValueChange(MacroTolerance.entries[index.roundToInt().coerceIn(0, 2)])
+                },
+                valueRange = 0f..2f,
+                steps = 1
+            )
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                MacroTolerance.entries.forEach { option ->
+                    Text(
+                        option.label(),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = if (option == value) FontWeight.Bold else FontWeight.Normal,
+                        color = if (option == value) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                }
+            }
+        }
+    }
+}
+
+private fun MacroTolerance.label() = when (this) {
+    MacroTolerance.PERMISSIVE -> "Permisivo"
+    MacroTolerance.NORMAL -> "Normal"
+    MacroTolerance.STRICT -> "Estricto"
 }
 
 @Composable
@@ -151,7 +205,7 @@ private fun CustomDietDialog(state: DietSelectionUiState, viewModel: DietSelecti
                 Modifier.fillMaxWidth().heightIn(max = 520.dp).verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Text("Define los objetivos diarios que usarán Inicio, Análisis y el calendario.",
+                Text("Define los objetivos diarios que usarán Nutrición y el calendario.",
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                 CustomField(state.customDiet.name, viewModel::onCustomNameChanged, "Nombre", keyboardType = KeyboardType.Text)
                 CustomField(state.customDiet.description, viewModel::onCustomDescriptionChanged, "Descripción", keyboardType = KeyboardType.Text)

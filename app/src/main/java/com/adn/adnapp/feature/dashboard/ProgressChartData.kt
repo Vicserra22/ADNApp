@@ -31,7 +31,7 @@ object ProgressChartData {
 
     fun weekly(
         history: Map<String, DailyConsumption>,
-        endDate: LocalDate = LocalDate.now(),
+        endDate: LocalDate = LocalDate.now().minusDays(1),
         locale: Locale = Locale.getDefault(),
         scoreOf: (DailyConsumption) -> Double
     ): ProgressChartModel {
@@ -52,7 +52,7 @@ object ProgressChartData {
 
     fun monthly(
         history: Map<String, DailyConsumption>,
-        endDate: LocalDate = LocalDate.now(),
+        endDate: LocalDate = LocalDate.now().minusDays(1),
         scoreOf: (DailyConsumption) -> Double
     ): ProgressChartModel {
         val start = endDate.minusDays(29)

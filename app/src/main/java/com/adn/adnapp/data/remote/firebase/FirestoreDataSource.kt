@@ -11,6 +11,8 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.SetOptions
 import com.adn.adnapp.domain.model.BodyGoal
 import com.adn.adnapp.domain.model.Importance
+import com.adn.adnapp.domain.model.DailyActivityLevel
+import com.adn.adnapp.domain.model.MacroTolerance
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -59,7 +61,8 @@ class FirestoreDataSource(private val db: FirebaseFirestore) {
         if (!doc.exists()) return null
         return NutritionProfile(
             dietId = doc.getString(FirestoreKeys.DIET_ID) ?: "",
-            onboardingCompleted = doc.getBoolean(FirestoreKeys.ONBOARDING_COMPLETED) ?: false
+            onboardingCompleted = doc.getBoolean(FirestoreKeys.ONBOARDING_COMPLETED) ?: false,
+            macroTolerance = doc.getString(FirestoreKeys.MACRO_TOLERANCE).enumOr(MacroTolerance.NORMAL)
         )
     }
 
@@ -67,7 +70,8 @@ class FirestoreDataSource(private val db: FirebaseFirestore) {
         nutritionProfileRef(uid).set(
             mapOf(
                 FirestoreKeys.DIET_ID to profile.dietId,
-                FirestoreKeys.ONBOARDING_COMPLETED to profile.onboardingCompleted
+                FirestoreKeys.ONBOARDING_COMPLETED to profile.onboardingCompleted,
+                FirestoreKeys.MACRO_TOLERANCE to profile.macroTolerance.name
             ),
             SetOptions.merge()
         ).await()
@@ -152,6 +156,13 @@ class FirestoreDataSource(private val db: FirebaseFirestore) {
         }.await()
     }
 
+    suspend fun setDailyActivityLevel(uid: String, dateKey: String, level: DailyActivityLevel) {
+        dailyConsumptionRef(uid, dateKey).set(
+            mapOf(FirestoreKeys.ACTIVITY_LEVEL to level.name),
+            SetOptions.merge()
+        ).await()
+    }
+
     fun observeFoodEntries(uid: String, dateKey: String): Flow<List<FoodEntry>> = callbackFlow {
         val ref = dailyConsumptionRef(uid, dateKey).collection(FirestoreKeys.INGESTED_FOODS)
         val listener = ref.addSnapshotListener { snapshot, error ->
@@ -182,7 +193,9 @@ class FirestoreDataSource(private val db: FirebaseFirestore) {
                         carbs = snapshot.getDouble(FirestoreKeys.CARBS) ?: 0.0,
                         fats = snapshot.getDouble(FirestoreKeys.FATS) ?: 0.0,
                         sugar = snapshot.getDouble(FirestoreKeys.SUGAR) ?: 0.0,
-                        waterMl = snapshot.getDouble(FirestoreKeys.WATER_ML) ?: 0.0
+                        waterMl = snapshot.getDouble(FirestoreKeys.WATER_ML) ?: 0.0,
+                        activityLevel = snapshot.getString(FirestoreKeys.ACTIVITY_LEVEL)
+                            .enumOr(DailyActivityLevel.LIGHT)
                     )
                 )
             } else {
@@ -209,7 +222,9 @@ class FirestoreDataSource(private val db: FirebaseFirestore) {
                     carbs = doc.getDouble(FirestoreKeys.CARBS) ?: 0.0,
                     fats = doc.getDouble(FirestoreKeys.FATS) ?: 0.0,
                     sugar = doc.getDouble(FirestoreKeys.SUGAR) ?: 0.0,
-                    waterMl = doc.getDouble(FirestoreKeys.WATER_ML) ?: 0.0
+                    waterMl = doc.getDouble(FirestoreKeys.WATER_ML) ?: 0.0,
+                    activityLevel = doc.getString(FirestoreKeys.ACTIVITY_LEVEL)
+                        .enumOr(DailyActivityLevel.LIGHT)
                 )
             }
             trySend(map)

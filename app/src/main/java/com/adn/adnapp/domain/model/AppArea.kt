@@ -1,6 +1,7 @@
 package com.adn.adnapp.domain.model
 
 enum class AppArea(val id: String, val isAvailable: Boolean) {
+    AGENDA("agenda", false),
     NUTRITION("nutrition", true),
     SPORTS("sports", false),
     FINANCE("finance", false),

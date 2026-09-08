@@ -12,6 +12,22 @@ class ProgressChartDataTest {
     private val endDate = LocalDate.of(2026, 9, 2)
     private val score: (DailyConsumption) -> Double = { it.calories / 2_000.0 }
 
+    @Test fun unfinishedToday_doesNotChangeWeeklyOrMonthlyTrend() {
+        val today = LocalDate.now()
+        val yesterday = today.minusDays(1).toString()
+        val history = mapOf(
+            yesterday to day(yesterday, 2000.0),
+            today.toString() to day(today.toString(), 10.0)
+        )
+        val weekly = ProgressChartData.weekly(history, scoreOf = score)
+        val monthly = ProgressChartData.monthly(history, scoreOf = score)
+        assertEquals(100f, weekly.average, 0f)
+        assertEquals(100f, monthly.average, 0f)
+        assertEquals(1, weekly.trackedDays)
+        assertEquals(0f, weekly.trend, 0f)
+        assertTrue(weekly.points.all { it.endDate < today })
+    }
+
     @Test
     fun weekly_keepsSevenCalendarSlotsAndMarksMissingDays() {
         val history = mapOf(

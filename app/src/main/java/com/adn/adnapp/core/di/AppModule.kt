@@ -35,7 +35,7 @@ val appModule = module {
     viewModelOf(::RegisterViewModel)
     viewModelOf(::UserInfoViewModel)
     viewModelOf(::DietSelectionViewModel)
-    viewModelOf(::HomeViewModel)
+    viewModel { HomeViewModel(get(), get(), get(), get(), get()) }
     viewModelOf(::DashboardViewModel)
     viewModelOf(::ProfileViewModel)
     viewModel { parameters -> DayViewerViewModel(parameters.get(), get(), get(), get(), get(), get()) }
