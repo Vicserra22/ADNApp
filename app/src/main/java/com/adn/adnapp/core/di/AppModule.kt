@@ -15,6 +15,7 @@ import com.adn.adnapp.feature.home.WellnessViewModel
 import com.adn.adnapp.feature.agenda.AgendaViewModel
 import com.adn.adnapp.feature.sports.SportsViewModel
 import com.adn.adnapp.feature.recovery.RecoveryViewModel
+import com.adn.adnapp.feature.finance.FinanceViewModel
 import com.adn.adnapp.feature.dashboard.DashboardViewModel
 import com.adn.adnapp.feature.profile.ProfileViewModel
 import com.adn.adnapp.feature.dayviewer.DayViewerViewModel
@@ -46,6 +47,7 @@ val appModule = module {
     viewModel { AgendaViewModel(get(), get()) }
     viewModelOf(::SportsViewModel)
     viewModelOf(::RecoveryViewModel)
+    viewModelOf(::FinanceViewModel)
     viewModelOf(::DashboardViewModel)
     viewModelOf(::ProfileViewModel)
     viewModel { parameters -> DayViewerViewModel(parameters.get(), get(), get(), get(), get(), get()) }

@@ -9,6 +9,7 @@ import com.adn.adnapp.data.local.AgendaStore
 import com.adn.adnapp.data.local.SportsStore
 import com.adn.adnapp.data.local.RecoveryStore
 import com.adn.adnapp.data.local.HealthConnectLauncher
+import com.adn.adnapp.data.local.FinanceStore
 import org.koin.dsl.module
 
 val localFoodModule = module {
@@ -27,4 +28,5 @@ val localFoodModule = module {
     single { SportsStore(get()) }
     single { RecoveryStore(get()) }
     single { HealthConnectLauncher(get()) }
+    single { FinanceStore(get()) }
 }
