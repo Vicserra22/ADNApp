@@ -3,8 +3,8 @@ package com.adn.adnapp.domain.model
 import java.util.UUID
 
 enum class SportKind(val label: String, val family: String) {
-    RUN("Correr", "cardio"), WALK("Caminar", "cardio"), CYCLING("Ciclismo", "cardio"),
-    STRENGTH("Fuerza", "strength"), SWIMMING("Natación", "cardio"), YOGA("Yoga", "mobility")
+    STRENGTH("Fuerza", "strength"), RUN("Correr", "cardio"), WALK("Caminar", "cardio"),
+    CYCLING("Ciclismo", "cardio"), SWIMMING("Natación", "cardio"), YOGA("Yoga", "mobility")
 }
 
 data class SportSession(

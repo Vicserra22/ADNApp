@@ -39,10 +39,11 @@ internal fun CustomDishContent(
     var selectedCode by rememberSaveable { mutableStateOf<String?>(null) }
     var grams by rememberSaveable { mutableStateOf("") }
     val selected = state.foods.firstOrNull { it.code == selectedCode }
-    Scaffold(topBar = { CompactTopBar("Lo mejor de la casa", onBack) }) { padding ->
+    Scaffold { padding ->
+        Box(Modifier.fillMaxSize()) {
         LazyColumn(
             Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 16.dp, bottom = LocalFloatingNavigationInset.current + 24.dp),
+            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 78.dp, bottom = LocalFloatingNavigationInset.current + 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
@@ -93,6 +94,8 @@ internal fun CustomDishContent(
             state.error?.let { error -> item { Text(error, color = MaterialTheme.colorScheme.error) } }
             if (state.saved) item { Text("Plato guardado en Mis alimentos. Desde allí puedes añadir la cantidad que comas.", color = MaterialTheme.colorScheme.primary) }
             item { Button(onSave, Modifier.fillMaxWidth(), enabled = !state.isSaving) { Text(if (state.isSaving) "Guardando…" else "Guardar mi plato") } }
+        }
+        OrganicBackButton(onBack, Modifier.align(Alignment.TopStart).padding(start = 10.dp, top = 8.dp))
         }
     }
     selected?.let { product ->

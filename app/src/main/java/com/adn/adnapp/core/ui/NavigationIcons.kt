@@ -31,6 +31,12 @@ internal object NavigationIcons {
         "M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915",
         "M15 12a3 3 0 1 1-6 0a3 3 0 1 1 6 0"
     ) }
+    val Fridge by lazy { outline("Refrigerator",
+        "M5 3h14v18H5z", "M9 7v3", "M9 14v3", "M15 7v3", "M15 14v3"
+    ) }
+    val Profile by lazy { outline("Profile",
+        "M20 21a8 8 0 0 0-16 0", "M12 13a4 4 0 1 0 0-8a4 4 0 0 0 0 8"
+    ) }
 
     private fun outline(name: String, vararg paths: String): ImageVector {
         val builder = ImageVector.Builder(name, 24.dp, 24.dp, 24f, 24f)

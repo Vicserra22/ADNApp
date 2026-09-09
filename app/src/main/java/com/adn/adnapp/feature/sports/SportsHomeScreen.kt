@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -41,7 +42,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.adn.adnapp.core.ui.CompactTopBar
 import com.adn.adnapp.core.ui.LocalFloatingNavigationInset
 import com.adn.adnapp.domain.model.SportKind
 import com.adn.adnapp.domain.model.SportSession
@@ -50,7 +50,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun SportsHomeScreen(onOpenRecovery: () -> Unit = {}, viewModel: SportsViewModel = koinViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    Scaffold(topBar = { CompactTopBar("Deporte") }) { padding ->
+    Scaffold { padding ->
         LazyColumn(Modifier.fillMaxSize().padding(padding), contentPadding = PaddingValues(16.dp, 14.dp, 16.dp, LocalFloatingNavigationInset.current + 20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
             item {
                 Text("Tu movimiento", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
@@ -71,7 +71,35 @@ fun SportsHomeScreen(onOpenRecovery: () -> Unit = {}, viewModel: SportsViewModel
 @Composable
 private fun SportCarousel(selected: SportKind, onSelect: (SportKind) -> Unit) {
     Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        SportKind.entries.forEach { sport -> FilterChip(selected == sport, { onSelect(sport) }, label = { Text(sport.label) }) }
+        SportKind.entries.forEach { sport ->
+            FilterChip(
+                selected == sport,
+                { onSelect(sport) },
+                leadingIcon = { SportSilhouette(sport) },
+                label = { Text(sport.label) },
+                modifier = Modifier.semantics { contentDescription = "Deporte ${sport.label}" }
+            )
+        }
+    }
+}
+
+@Composable
+private fun SportSilhouette(sport: SportKind) {
+    val color = MaterialTheme.colorScheme.primary
+    Canvas(Modifier.size(26.dp)) {
+        val cx = size.width / 2f
+        val head = size.minDimension * .14f
+        drawCircle(color, head, androidx.compose.ui.geometry.Offset(cx, size.height * .2f))
+        val path = androidx.compose.ui.graphics.Path().apply {
+            when (sport) {
+                SportKind.STRENGTH -> { moveTo(cx, size.height*.32f); lineTo(cx, size.height*.67f); moveTo(cx-size.width*.28f,size.height*.42f); lineTo(cx+size.width*.28f,size.height*.42f); moveTo(cx,size.height*.67f); lineTo(cx-size.width*.22f,size.height*.95f); moveTo(cx,size.height*.67f); lineTo(cx+size.width*.22f,size.height*.95f) }
+                SportKind.YOGA -> { moveTo(cx,size.height*.32f); cubicTo(cx-size.width*.35f,size.height*.42f,cx-size.width*.35f,size.height*.68f,cx,size.height*.68f); lineTo(cx+size.width*.28f,size.height*.92f) }
+                SportKind.SWIMMING -> { moveTo(size.width*.08f,size.height*.7f); cubicTo(size.width*.25f,size.height*.5f,size.width*.45f,size.height*.85f,size.width*.62f,size.height*.63f); cubicTo(size.width*.75f,size.height*.45f,size.width*.87f,size.height*.62f,size.width*.95f,size.height*.5f) }
+                SportKind.CYCLING -> { moveTo(size.width*.2f,size.height*.75f); lineTo(cx,size.height*.38f); lineTo(size.width*.8f,size.height*.75f); lineTo(size.width*.2f,size.height*.75f); moveTo(cx,size.height*.38f); lineTo(cx+size.width*.2f,size.height*.22f) }
+                else -> { moveTo(cx,size.height*.32f); lineTo(cx,size.height*.72f); moveTo(cx,size.height*.4f); lineTo(cx-size.width*.25f,size.height*.62f); moveTo(cx,size.height*.4f); lineTo(cx+size.width*.25f,size.height*.55f); moveTo(cx,size.height*.72f); lineTo(cx-size.width*.2f,size.height*.95f); moveTo(cx,size.height*.72f); lineTo(cx+size.width*.25f,size.height*.95f) }
+            }
+        }
+        drawPath(path, color, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2.4f, cap = androidx.compose.ui.graphics.StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
     }
 }
 
@@ -130,7 +158,7 @@ private fun SessionCard(session: SportSession, onRemove: (SportSession) -> Unit)
 @Composable
 fun SportsAnalysisScreen(viewModel: SportsViewModel = koinViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    Scaffold(topBar = { CompactTopBar("Deporte · Análisis") }) { padding ->
+    Scaffold { padding ->
         Column(Modifier.fillMaxSize().padding(padding).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("Tendencias de ${state.selectedSport.label.lowercase()}", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
             SportCarousel(state.selectedSport, viewModel::selectSport)

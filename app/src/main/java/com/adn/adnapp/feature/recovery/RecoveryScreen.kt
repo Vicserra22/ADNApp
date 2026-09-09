@@ -28,15 +28,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.adn.adnapp.core.ui.CompactTopBar
+import com.adn.adnapp.core.ui.OrganicBackButton
 import com.adn.adnapp.core.ui.LocalFloatingNavigationInset
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun RecoveryScreen(viewModel: RecoveryViewModel = koinViewModel()) {
+fun RecoveryScreen(onBack: (() -> Unit)? = null, viewModel: RecoveryViewModel = koinViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    Scaffold(topBar = { CompactTopBar("Pasos y sueño") }) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding).padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+    Scaffold { padding ->
+        androidx.compose.foundation.layout.Box(Modifier.fillMaxSize()) {
+        Column(Modifier.fillMaxSize().padding(padding).padding(start = 16.dp, end = 16.dp, top = 78.dp, bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Text("Recuperación", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
             Text("Una pulsera puede alimentar estos datos a través de Health Connect cuando concedas permiso.", color = MaterialTheme.colorScheme.onSurfaceVariant)
             Button({ viewModel.openHealthConnect() }, Modifier.fillMaxWidth().semantics { contentDescription = "Conectar Health Connect" }) { Text("Conectar dispositivo o app") }
@@ -61,6 +62,8 @@ fun RecoveryScreen(viewModel: RecoveryViewModel = koinViewModel()) {
             Card(shape = RoundedCornerShape(18.dp)) { Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) { androidx.compose.material3.Icon(Icons.Default.Info, null); Text("La conexión no duplica el historial manual: cada registro conserva su origen y fecha.", Modifier.padding(start = 10.dp), style = MaterialTheme.typography.bodySmall) } }
             state.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
             state.message?.let { Text(it, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold) }
+        }
+        onBack?.let { OrganicBackButton(it, Modifier.align(Alignment.TopStart).padding(start = 10.dp, top = 8.dp)) }
         }
     }
 }

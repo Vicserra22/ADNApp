@@ -35,6 +35,7 @@ internal fun FoodCategoryBubbles(categories: List<String>, selected: String?, on
 }
 
 private fun String.illustration() = when {
+    contains("huevo", true) -> FoodIllustration.EGG
     contains("carne", true) || contains("jamón", true) -> FoodIllustration.FRESH
     contains("pesc", true) -> FoodIllustration.FISH
     contains("verdur", true) -> FoodIllustration.LEAF

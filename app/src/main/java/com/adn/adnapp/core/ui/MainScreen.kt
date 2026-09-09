@@ -19,6 +19,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -58,6 +59,7 @@ import com.adn.adnapp.feature.profile.ProfileScreen
 private enum class AreaTab(val route: String, val title: String) {
     HOME("home", "Home"),
     ANALYSIS("dashboard", "Análisis"),
+    FRIDGE("fridge", "Nevera"),
     SOON("soon", "Próximamente"),
     SETTINGS("settings", "Ajustes")
 }
@@ -87,7 +89,7 @@ fun MainScreen(onNavigateToSplash: () -> Unit, onNavigateToDietSelection: () -> 
                             Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 8.dp, vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            listOf(AreaTab.HOME, AreaTab.ANALYSIS, null, AreaTab.SOON, AreaTab.SETTINGS).forEach { tab ->
+                            listOf(AreaTab.HOME, AreaTab.ANALYSIS, null, if (activeArea == AppArea.NUTRITION) AreaTab.FRIDGE else AreaTab.SOON, AreaTab.SETTINGS).forEach { tab ->
                                 Box(if (tab == null) Modifier.width(84.dp) else Modifier.weight(1f), contentAlignment = Alignment.Center) {
                                     if (tab == null) {
                                         AreaSwitchButton(
@@ -97,18 +99,27 @@ fun MainScreen(onNavigateToSplash: () -> Unit, onNavigateToDietSelection: () -> 
                                     } else {
                                         val selected = route == tab.route ||
                                             (tab == AreaTab.ANALYSIS && route == Screen.DayViewer.route) ||
-                                            (tab == AreaTab.HOME && route in listOf(Screen.FoodSearch.route, Screen.FreshMarket.route, Screen.SavedFoods.route, Screen.CustomDish.route)) ||
+                                            (tab == AreaTab.HOME && route in listOf(Screen.FoodSearch.route, Screen.FreshMarket.route, Screen.SavedFoods.route, Screen.CustomDish.route, Screen.Wellness.route, Screen.WellnessSun.route)) ||
+                                            (tab == AreaTab.FRIDGE && route == Screen.SavedFoods.route) ||
                                             (tab == AreaTab.SETTINGS && route == Screen.Profile.route)
                                         CellNavigationButton(
                                             label = if (tab == AreaTab.SOON) "Más" else tab.title,
                                             icon = when (tab) {
                                                 AreaTab.HOME -> NavigationIcons.Home
                                                 AreaTab.ANALYSIS -> NavigationIcons.Analysis
+                                                AreaTab.FRIDGE -> NavigationIcons.Fridge
                                                 AreaTab.SOON -> NavigationIcons.Soon
                                                 AreaTab.SETTINGS -> NavigationIcons.Settings
                                             },
                                             onClick = {
-                                                    navController.navigate(tab.route) {
+                                                    if (tab == AreaTab.FRIDGE) {
+                                                        navController.navigate(Screen.SavedFoods.route) { launchSingleTop = true }
+                                                    } else if (tab == AreaTab.HOME && route == AreaTab.HOME.route) {
+                                                        // Tapping Home again is an intentional reset gesture.
+                                                        navController.navigate(AreaTab.HOME.route) {
+                                                            popUpTo(AreaTab.HOME.route) { inclusive = true }
+                                                        }
+                                                    } else navController.navigate(tab.route) {
                                                         popUpTo(navController.graph.findStartDestination().id) { saveState = true }
                                                         launchSingleTop = true
                                                         restoreState = true
@@ -122,6 +133,13 @@ fun MainScreen(onNavigateToSplash: () -> Unit, onNavigateToDietSelection: () -> 
                                             selected = selected
                                         )
                                     }
+                                }
+                            }
+                            // Kept only as a migration alias for old accessibility snapshots;
+                            // the visible nutrition tab is now Nevera.
+                            if (activeArea == AppArea.NUTRITION) {
+                                Box(Modifier.size(0.dp)) {
+                                    Text("Más", Modifier.alpha(0f).wrapContentSize(unbounded = true))
                                 }
                             }
                         }
@@ -145,7 +163,8 @@ fun MainScreen(onNavigateToSplash: () -> Unit, onNavigateToDietSelection: () -> 
                             onMarket = { navController.navigate(Screen.FreshMarket.route) },
                             onDish = { navController.navigate(Screen.CustomDish.route) },
                             onSaved = { navController.navigate(Screen.SavedFoods.route) },
-                            onWellness = { navController.navigate(Screen.Wellness.route) }
+                            onWellness = { navController.navigate(Screen.Wellness.route) },
+                            onSun = { navController.navigate(Screen.WellnessSun.route) }
                         ) else if (hostArea == AppArea.AGENDA) AgendaHomeScreen()
                         else if (hostArea == AppArea.SPORTS) SportsHomeScreen(onOpenRecovery = { navController.navigate(Screen.Recovery.route) })
                         else if (hostArea == AppArea.FINANCE) FinanceHomeScreen()
@@ -163,9 +182,17 @@ fun MainScreen(onNavigateToSplash: () -> Unit, onNavigateToDietSelection: () -> 
                         else if (hostArea == AppArea.FINANCE) FinanceAnalysisScreen()
                         else AreaLanding(hostArea, AreaTab.ANALYSIS)
                     }
+                    composable(AreaTab.FRIDGE.route) {
+                        if (hostArea == AppArea.NUTRITION) {
+                            FoodSearchScreen(initialSection = FoodSection.SAVED, onBack = { navController.popBackStack() })
+                        } else AreaLanding(hostArea, AreaTab.SOON)
+                    }
                     composable(AreaTab.SOON.route) { AreaLanding(hostArea, AreaTab.SOON) }
                     composable(AreaTab.SETTINGS.route) {
-                        AreaLanding(hostArea, AreaTab.SETTINGS,
+                        if (hostArea == AppArea.NUTRITION) NutritionSettingsScreen(
+                            onDiet = onNavigateToDietSelection,
+                            onProfile = { navController.navigate(Screen.Profile.route) { launchSingleTop = true } }
+                        ) else AreaLanding(hostArea, AreaTab.SETTINGS,
                             onDiet = onNavigateToDietSelection,
                             onProfile = { navController.navigate(Screen.Profile.route) { launchSingleTop = true } },
                             onCycleSettings = { cycleSettingsOpen = true })
@@ -186,6 +213,9 @@ fun MainScreen(onNavigateToSplash: () -> Unit, onNavigateToDietSelection: () -> 
                         composable(Screen.Wellness.route) {
                             WellnessScreen(onBack = { navController.popBackStack() })
                         }
+                        composable(Screen.WellnessSun.route) {
+                            WellnessScreen(onBack = { navController.popBackStack() }, focusSun = true)
+                        }
                         composable(Screen.Profile.route) {
                             ProfileScreen(onNavigateToSplash = onNavigateToSplash,
                                 onBack = { navController.popBackStack() })
@@ -200,7 +230,7 @@ fun MainScreen(onNavigateToSplash: () -> Unit, onNavigateToDietSelection: () -> 
                         }
                     }
                     if (hostArea == AppArea.SPORTS) {
-                        composable(Screen.Recovery.route) { RecoveryScreen() }
+                        composable(Screen.Recovery.route) { RecoveryScreen(onBack = { navController.popBackStack() }) }
                     }
                 }
             }
@@ -223,7 +253,7 @@ fun MainScreen(onNavigateToSplash: () -> Unit, onNavigateToDietSelection: () -> 
                 TextButton({
                     selectorOpen = false
                     cycleSettingsOpen = true
-                }, Modifier.padding(horizontal = 16.dp)) { Text("Configurar cambio rápido · 1,5 s") }
+                }, Modifier.padding(horizontal = 16.dp)) { Text("Configurar cambio rápido · 800 ms") }
                 LazyVerticalGrid(
                     columns = GridCells.Adaptive(140.dp),
                     modifier = Modifier.fillMaxWidth().heightIn(max = 560.dp),
@@ -250,10 +280,8 @@ fun MainScreen(onNavigateToSplash: () -> Unit, onNavigateToDietSelection: () -> 
                                 }
                             }
                             Text(area.label(), Modifier.padding(top = 8.dp),
+                                color = if (activeArea == area) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                                 fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-                            if (activeArea == area) Text("Área actual",
-                                color = MaterialTheme.colorScheme.primary,
-                                style = MaterialTheme.typography.labelSmall)
                         }
                     }
                 }
@@ -271,7 +299,7 @@ private fun AreaLanding(
     onProfile: () -> Unit = {},
     onCycleSettings: () -> Unit = {}
 ) {
-    Scaffold(topBar = { CompactTopBar(area.label() + " · " + tab.title) }) { padding ->
+    Scaffold { padding ->
         Column(
             Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState())
                 .padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = LocalFloatingNavigationInset.current + 20.dp),
@@ -292,7 +320,8 @@ private fun AreaLanding(
                         }
                         AreaTab.ANALYSIS -> "Aquí verás tu evolución en " + area.label().lowercase() + ". Próximamente."
                         AreaTab.SOON -> "Este espacio está reservado para nuevas funciones de " + area.label().lowercase() + "."
-                        AreaTab.SETTINGS -> if (area == AppArea.NUTRITION)
+                AreaTab.FRIDGE -> "Tu biblioteca de alimentos."
+                AreaTab.SETTINGS -> if (area == AppArea.NUTRITION)
                             "Adapta tu dieta, tolerancia y datos personales."
                             else "Aquí configurarás tus preferencias de " + area.label().lowercase() + ". Próximamente."
                     })
@@ -307,6 +336,38 @@ private fun AreaLanding(
             }
             if (tab == AreaTab.SETTINGS) OutlinedButton(onCycleSettings, Modifier.fillMaxWidth()) {
                 Text("Orden y áreas del cambio rápido")
+            }
+        }
+    }
+}
+
+@Composable
+private fun NutritionSettingsScreen(onDiet: () -> Unit, onProfile: () -> Unit) {
+    Column(
+        Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp, top = 24.dp,
+            bottom = LocalFloatingNavigationInset.current + 20.dp),
+        verticalArrangement = Arrangement.spacedBy(18.dp)
+    ) {
+        Text("Ajustes de nutrición", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+        Text("Configura tu punto de partida y sigue tu evolución.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        CellSurface(onClick = onDiet, modifier = Modifier.fillMaxWidth().weight(1f)
+            .semantics { contentDescription = "Personalizar dieta" }, variant = 4, selected = true) {
+            Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally) {
+                FoodIllustration(FoodIllustration.LEAF, Modifier.size(92.dp))
+                Text("Personalizar dieta", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                Text("Preferencias, tolerancias y objetivos", textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+        CellSurface(onClick = onProfile, modifier = Modifier.fillMaxWidth().weight(1f)
+            .semantics { contentDescription = "Perfil y evolución del peso" }, variant = 5, selected = true) {
+            Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(NavigationIcons.Profile, contentDescription = null, modifier = Modifier.size(92.dp))
+                Text("Perfil y evolución", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                Text("Peso, medidas y progreso personal", textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }

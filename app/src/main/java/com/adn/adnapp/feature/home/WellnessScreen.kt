@@ -13,9 +13,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -35,6 +38,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -52,7 +56,10 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.adn.adnapp.core.ui.CompactTopBar
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.platform.LocalDensity
+import com.adn.adnapp.core.ui.OrganicBackButton
 import com.adn.adnapp.core.ui.LocalFloatingNavigationInset
 import com.adn.adnapp.data.local.SunLog
 import com.adn.adnapp.data.local.WaterLog
@@ -63,23 +70,33 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 @Composable
 fun WellnessScreen(
     viewModel: WellnessViewModel = koinViewModel(),
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    focusSun: Boolean = false
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    Scaffold(topBar = { CompactTopBar("Agua y sol", onBack) }) { padding ->
+    val scrollState = rememberScrollState()
+    var sunPosition by remember { mutableIntStateOf(0) }
+    val density = LocalDensity.current
+    LaunchedEffect(focusSun, sunPosition) {
+        if (focusSun && sunPosition > 0) {
+            scrollState.animateScrollTo((sunPosition - with(density) { 86.dp.toPx() }).toInt().coerceAtLeast(0))
+        }
+    }
+    Box(Modifier.fillMaxSize()) {
         Column(
-            Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState())
-                .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = LocalFloatingNavigationInset.current + 20.dp),
+            Modifier.fillMaxSize().verticalScroll(scrollState)
+                .padding(start = 16.dp, end = 16.dp, top = 78.dp, bottom = LocalFloatingNavigationInset.current + 20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text("Rituales diarios", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
             Text("Registra lo que haces y conserva el historial. La escala del sol describe tiempo, no una recomendación médica.",
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
             WaterCard(state, viewModel)
-            SunCard(state, viewModel)
+            SunCard(state, viewModel, Modifier.onGloballyPositioned { sunPosition = it.positionInParent().y.toInt() })
             state.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
             state.message?.let { Text(it, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold) }
         }
+        OrganicBackButton(onBack, Modifier.align(Alignment.TopStart).padding(start = 10.dp, top = 8.dp))
     }
 }
 
@@ -92,7 +109,7 @@ private fun WaterCard(state: WellnessUiState, viewModel: WellnessViewModel) {
                 Text("Agua", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                 Text("${state.waterTotalMl.pretty()} / ${state.waterGoalMl.pretty()} ml", fontWeight = FontWeight.Bold)
             }
-            Box(Modifier.fillMaxWidth().height(220.dp), contentAlignment = Alignment.Center) { Bottle(progress, viewModel::addQuickWater) }
+            Box(Modifier.fillMaxWidth().height(350.dp), contentAlignment = Alignment.Center) { Bottle(progress, viewModel::addQuickWater) }
             Text("Toca la botella para añadir 250 ml", color = MaterialTheme.colorScheme.onSurfaceVariant)
             Button(onClick = viewModel::addQuickWater, modifier = Modifier.fillMaxWidth()) { Text("Añadir un vaso · 250 ml") }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -114,10 +131,11 @@ private fun WaterCard(state: WellnessUiState, viewModel: WellnessViewModel) {
 @Composable
 private fun Bottle(progress: Float, onTap: () -> Unit) {
     val animated by animateFloatAsState(progress, label = "water-level")
-    val bottleSurface = MaterialTheme.colorScheme.surface
-    val bottleSoft = MaterialTheme.colorScheme.primaryContainer
-    val bottleInk = MaterialTheme.colorScheme.primary
-    Box(Modifier.size(130.dp).semantics {
+    val bottleGlass = Color(0xFFD9F5FF)
+    val bottleInk = Color(0xFF39AEE5)
+    val capColor = Color(0xFF176BBA)
+    val labelColor = Color(0xFFFFD166)
+    Box(Modifier.size(220.dp, 310.dp).semantics {
         contentDescription = "Botella de agua al ${(animated * 100).toInt()} por ciento"
         role = Role.Button
         onClick { onTap(); true }
@@ -125,15 +143,21 @@ private fun Bottle(progress: Float, onTap: () -> Unit) {
         Canvas(Modifier.fillMaxSize().pointerInput(Unit) {
             detectTapGestures(onTap = { onTap() })
         }) {
-            val body = Size(size.width * .58f, size.height * .73f)
-            val left = size.width * .21f
+            val body = Size(size.width * .7f, size.height * .74f)
+            val left = size.width * .15f
             val top = size.height * .2f
-            drawRoundRect(bottleSurface, Offset(left, top), body, CornerRadius(24f, 24f), style = Stroke(5f, cap = StrokeCap.Round))
-            drawRoundRect(bottleSoft, Offset(size.width * .39f, 0f), Size(size.width * .22f, size.height * .23f), CornerRadius(9f, 9f))
+            drawRoundRect(bottleGlass, Offset(left, top), body, CornerRadius(34f, 34f))
+            drawRoundRect(bottleInk.copy(alpha = .3f), Offset(left, top), body, CornerRadius(34f, 34f), style = Stroke(7f, cap = StrokeCap.Round))
+            drawRoundRect(capColor, Offset(size.width * .34f, 0f), Size(size.width * .32f, size.height * .2f), CornerRadius(15f, 15f))
+            drawRoundRect(capColor.copy(alpha = .8f), Offset(size.width * .29f, size.height * .14f), Size(size.width * .42f, size.height * .1f), CornerRadius(10f, 10f))
             val fillTop = top + body.height * (1f - animated)
-            drawRoundRect(bottleInk.copy(alpha = .7f), Offset(left + 4f, fillTop), Size(body.width - 8f, top + body.height - fillTop - 4f), CornerRadius(18f, 18f))
-            drawArc(bottleInk.copy(alpha = .7f), 0f, 180f, false, Offset(left + 4f, fillTop - 8f), Size(body.width - 8f, 16f), style = Stroke(3f))
-            drawLine(bottleInk.copy(alpha = .5f), Offset(left + body.width * .25f, top + 12f), Offset(left + body.width * .25f, top + body.height - 15f), 3f, StrokeCap.Round)
+            if (animated > 0f) {
+                drawRoundRect(bottleInk.copy(alpha = .84f), Offset(left + 7f, fillTop), Size(body.width - 14f, top + body.height - fillTop - 7f), CornerRadius(27f, 27f))
+                drawArc(Color(0xFF8DE5FF), 180f, 180f, false, Offset(left + 7f, fillTop - 10f), Size(body.width - 14f, 20f), style = Stroke(4f))
+            }
+            drawRoundRect(labelColor, Offset(left + body.width * .14f, top + body.height * .39f), Size(body.width * .72f, body.height * .2f), CornerRadius(18f, 18f))
+            drawCircle(Color.White.copy(alpha = .75f), 5f, Offset(left + body.width * .31f, top + body.height * .47f))
+            drawLine(bottleInk.copy(alpha = .65f), Offset(left + body.width * .21f, top + 18f), Offset(left + body.width * .21f, top + body.height - 24f), 6f, StrokeCap.Round)
         }
     }
 }
@@ -149,9 +173,9 @@ private fun WaterHistoryRow(log: WaterLog, onUndo: (WaterLog) -> Unit) {
 }
 
 @Composable
-private fun SunCard(state: WellnessUiState, viewModel: WellnessViewModel) {
+private fun SunCard(state: WellnessUiState, viewModel: WellnessViewModel, modifier: Modifier = Modifier) {
     var selectedMinutes by remember(state.sunTotalMinutes) { mutableIntStateOf((state.sunTotalMinutes % 60).coerceIn(0, 60)) }
-    Card(shape = RoundedCornerShape(26.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+    Card(modifier = modifier, shape = RoundedCornerShape(26.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("Sol", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
@@ -163,7 +187,7 @@ private fun SunCard(state: WellnessUiState, viewModel: WellnessViewModel) {
                 OutlinedTextField(
                     value = state.sunInput,
                     onValueChange = viewModel::onSunInputChanged,
-                    label = { Text("Minutos exactos") },
+                    label = { Text("Minutos exactos (opcional)") },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.weight(1f)
@@ -180,18 +204,22 @@ private fun SunCard(state: WellnessUiState, viewModel: WellnessViewModel) {
 
 @Composable
 private fun SunScale(selectedMinutes: Int, onMinutesChanged: (Int) -> Unit) {
-    Row(
-        Modifier.fillMaxWidth().height(64.dp).pointerInput(Unit) {
+    Column(
+        Modifier.fillMaxWidth().heightIn(min = 168.dp).pointerInput(Unit) {
             detectDragGestures { change, _ ->
                 change.consume()
                 onMinutesChanged(((change.position.x / size.width) * 60f).toInt().coerceIn(0, 60).let { (it / 5) * 5 })
             }
         },
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        (1..12).forEach { index ->
-            SunDot(index * 5 <= selectedMinutes, index * 5, onMinutesChanged)
+        (0 until 3).forEach { row ->
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                (1..4).forEach { column ->
+                    val index = row * 4 + column
+                    SunDot(index * 5 <= selectedMinutes, index * 5, onMinutesChanged)
+                }
+            }
         }
     }
 }
@@ -200,7 +228,7 @@ private fun SunScale(selectedMinutes: Int, onMinutesChanged: (Int) -> Unit) {
 private fun SunDot(filled: Boolean, minutes: Int, onMinutesChanged: (Int) -> Unit) {
     val unfilled = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = .45f)
     val color = if (filled) Color(0xFFF3B63F) else unfilled
-    Box(Modifier.size(28.dp).clickable { onMinutesChanged(minutes) }.semantics { contentDescription = "Sol de $minutes minutos" }) {
+    Box(Modifier.size(64.dp).clickable { onMinutesChanged(minutes) }.semantics { contentDescription = "Sol de $minutes minutos" }) {
         Canvas(Modifier.fillMaxSize()) {
             val center = Offset(size.width / 2f, size.height / 2f)
             drawCircle(color, size.minDimension * .24f, center)

@@ -14,7 +14,7 @@ import com.adn.adnapp.domain.model.AppArea
 fun AreaCycleSettings(cycle: List<AppArea>, onChange: (List<AppArea>) -> Unit, onDismiss: () -> Unit) {
     AppBottomSheet(onDismiss) {
         Text("Cambio rápido de área", style = MaterialTheme.typography.titleLarge)
-        Text("Mantén la bola central 1,5 segundos para avanzar una vez. Elige al menos dos áreas y su orden.")
+        Text("Mantén la bola central 800 ms para avanzar una vez. Elige al menos dos áreas y su orden.")
         Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState())) {
             val ordered = cycle + AppArea.entries.filterNot { it in cycle }
             ordered.forEach { area ->

@@ -50,7 +50,7 @@ data class HomeUiState(
     val successMessage: String? = null
 )
 
-enum class FoodSection { PRODUCTS, FRESH, SAVED }
+enum class FoodSection { PRODUCTS, FRESH, CUSTOM, SAVED }
 
 class HomeViewModel(
     private val foodRepository: FoodRepository,

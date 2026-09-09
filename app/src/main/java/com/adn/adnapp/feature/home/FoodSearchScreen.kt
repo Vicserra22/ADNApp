@@ -38,7 +38,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.adn.adnapp.data.model.entity.Product
 import com.adn.adnapp.data.model.entity.ProductNutrient
-import com.adn.adnapp.core.ui.CompactTopBar
+import com.adn.adnapp.core.ui.OrganicBackButton
 import com.adn.adnapp.core.ui.LocalFloatingNavigationInset
 import com.adn.adnapp.core.ui.EntryDateSheet
 import com.adn.adnapp.core.ui.readableDate
@@ -76,20 +76,17 @@ fun FoodSearchScreen(
         )
     }
 
-    Scaffold(topBar = { CompactTopBar(when (state.foodSection) {
-        FoodSection.PRODUCTS -> "Súper"
-        FoodSection.FRESH -> "Mercadillo"
-        FoodSection.SAVED -> "Nevera"
-    }, onBack) }) { padding ->
+    Scaffold { padding ->
+        Box(Modifier.fillMaxSize()) {
         LazyColumn(
             Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = LocalFloatingNavigationInset.current + 12.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = if (onBack != null) 78.dp else 12.dp, bottom = LocalFloatingNavigationInset.current + 12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item { Text("Registro para " + state.screenDate.readableDate(),
                 style = MaterialTheme.typography.labelMedium) }
             item {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FoodSection.entries.forEach { section ->
                         FilterChip(
                             selected = state.foodSection == section,
@@ -97,9 +94,10 @@ fun FoodSearchScreen(
                             label = { Text(when (section) {
                                 FoodSection.PRODUCTS -> "Súper"
                                 FoodSection.FRESH -> "Mercadillo"
-                                FoodSection.SAVED -> "Guardados"
+                                FoodSection.CUSTOM -> "Propios"
+                                FoodSection.SAVED -> "Favoritos"
                             }) },
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.widthIn(min = 108.dp)
                         )
                     }
                 }
@@ -173,15 +171,15 @@ fun FoodSearchScreen(
                         }
                     }
                 }
-                FoodSection.SAVED -> {
+                FoodSection.CUSTOM, FoodSection.SAVED -> {
                     item { FridgeHeader() }
                     item {
-                        Text("Favoritos y alimentos usados recientemente. Toca «Más nutrientes» para girar una tarjeta.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(if (state.foodSection == FoodSection.CUSTOM) "Tus platos personalizados, guardados automáticamente como favoritos." else "Tus alimentos favoritos. Toca una tarjeta para consultar todos sus nutrientes.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
             if (state.foodSection == FoodSection.PRODUCTS && state.searchQuery.isBlank() && state.searchResults.isEmpty() && !state.isSearching) item {
-                FoodCategoryBubbles(listOf("Quesos", "Carnes", "Pescados", "Verduras", "Lácteos", "Frutas", "Cereales", "Legumbres", "Frutos secos"), null) {
+                FoodCategoryBubbles(listOf("Quesos", "Carnes", "Pescados", "Huevos", "Verduras", "Lácteos", "Frutas", "Cereales", "Legumbres", "Frutos secos"), null) {
                     viewModel.onSearchQueryChanged(it)
                     viewModel.searchFood()
                 }
@@ -205,13 +203,17 @@ fun FoodSearchScreen(
                     (freshCategory == null || product.categories.firstOrNull() == freshCategory) &&
                         (freshQuery.isBlank() || product.name.contains(freshQuery, ignoreCase = true))
                 }
-                FoodSection.SAVED -> (state.favoriteFoods + state.recentFoods).distinctBy { it.code }
+                FoodSection.CUSTOM -> state.favoriteFoods.filter { it.code.startsWith("dish:") }
+                FoodSection.SAVED -> state.favoriteFoods.filterNot { it.code.startsWith("dish:") }
             }
-            if (state.foodSection == FoodSection.SAVED && visibleProducts.isEmpty()) item {
+            if (state.foodSection in listOf(FoodSection.CUSTOM, FoodSection.SAVED) && visibleProducts.isEmpty()) item {
                 Text("Aún no tienes alimentos guardados. Marca el corazón de cualquier producto para encontrarlo aquí.", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             items(visibleProducts, key = { it.code }) { product ->
-                ProductResultCard(
+                if (state.foodSection == FoodSection.CUSTOM || state.foodSection == FoodSection.SAVED) {
+                    FridgeProductCard(product, onInfo = { infoProduct = product }, onAdd = { viewModel.onProductSelected(product) },
+                        isFavorite = product.code in state.favoriteCodes, onFavorite = { viewModel.toggleFavorite(product) })
+                } else ProductResultCard(
                     product = product,
                     onInfo = { infoProduct = product },
                     onAdd = { viewModel.onProductSelected(product) },
@@ -227,6 +229,8 @@ fun FoodSearchScreen(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
                 )
             }
+        }
+        onBack?.let { OrganicBackButton(it, Modifier.align(Alignment.TopStart).padding(start = 10.dp, top = 8.dp)) }
         }
     }
 
@@ -276,7 +280,7 @@ private fun ProductResultCard(
     val rotation by animateFloatAsState(if (flipped) 180f else 0f, label = "product-card")
     Card(
         shape = RoundedCornerShape(22.dp),
-        modifier = Modifier.fillMaxWidth().height(238.dp).graphicsLayer {
+        modifier = Modifier.fillMaxWidth().height(if (product.code.startsWith("dish:")) 196.dp else 238.dp).graphicsLayer {
             rotationY = rotation
             cameraDistance = 12f * density
         }
@@ -318,6 +322,31 @@ private fun ProductResultCard(
             }
         } else {
             ProductCardBack(product, onFlipBack = { flipped = false })
+        }
+    }
+}
+
+@Composable
+private fun FridgeProductCard(
+    product: Product,
+    onInfo: () -> Unit,
+    onAdd: () -> Unit,
+    isFavorite: Boolean,
+    onFavorite: () -> Unit
+) {
+    Card(shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth().height(188.dp)) {
+        Row(Modifier.fillMaxSize()) {
+            ProductImage(product, Modifier.size(132.dp).align(Alignment.CenterVertically).padding(8.dp).clip(RoundedCornerShape(14.dp)))
+            Column(Modifier.weight(1f).padding(vertical = 12.dp, horizontal = 6.dp), verticalArrangement = Arrangement.SpaceBetween) {
+                Text(product.name, fontWeight = FontWeight.Bold, maxLines = 3, overflow = TextOverflow.Ellipsis)
+                Text("${product.calories.pretty()} kcal · ${product.proteins.pretty()} g proteína", style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Row {
+                    IconButton(onClick = onFavorite, modifier = Modifier.size(34.dp)) { Icon(if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder, "Favorito") }
+                    IconButton(onClick = onInfo, modifier = Modifier.size(34.dp)) { Icon(Icons.Default.Info, "Información nutricional") }
+                    IconButton(onClick = onAdd, modifier = Modifier.size(34.dp)) { Icon(Icons.Default.Add, "Añadir") }
+                }
+            }
         }
     }
 }
@@ -404,6 +433,15 @@ private fun ProductInfoSheet(product: Product, onDismiss: () -> Unit) {
                 if (product.nutritionGrade.isNotBlank()) QualityBadge("Nutri-Score ${product.nutritionGrade}", nutriColor(product.nutritionGrade))
                 product.novaGroup?.let { QualityBadge("NOVA $it", novaColor(it)) }
                 if (product.servingSize.isNotBlank()) BadgeText("Ración ${product.servingSize}")
+            }
+            Surface(shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.secondaryContainer) {
+                Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                    Text("Métricas de tu biblioteca", fontWeight = FontWeight.Bold)
+                    Text(if (product.code.startsWith("dish:")) "Plato propio · guardado automáticamente en Favoritos" else "Alimento favorito · disponible para añadir a tus comidas",
+                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSecondaryContainer)
+                    Text("La etiqueta de calidad combina Nutri-Score y tu perfil de dieta.", style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer)
+                }
             }
             Text("Nutrientes por 100 g", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             if (product.nutrients.isEmpty()) {

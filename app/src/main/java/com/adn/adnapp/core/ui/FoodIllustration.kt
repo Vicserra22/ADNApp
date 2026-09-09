@@ -13,12 +13,27 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
 
-enum class FoodIllustration { CART, FRESH, PLATE, FISH, LEAF, FRUIT, DAIRY, GRAINS, WATER, SUN }
+enum class FoodIllustration { CART, FRESH, PLATE, FISH, EGG, LEAF, FRUIT, DAIRY, GRAINS, WATER, SUN }
 
 @Composable
 fun FoodIllustration(kind: FoodIllustration, modifier: Modifier = Modifier) {
-    val ink = MaterialTheme.colorScheme.primary
-    val soft = MaterialTheme.colorScheme.primaryContainer
+    // The organic cell is always green; the object inside it carries its own
+    // visual language so the icon remains recognisable at a glance.
+    val defaultInk = MaterialTheme.colorScheme.primary
+    val defaultSoft = MaterialTheme.colorScheme.primaryContainer
+    val ink = when (kind) {
+        FoodIllustration.CART, FoodIllustration.FISH, FoodIllustration.WATER -> Color(0xFF55B8EA)
+        FoodIllustration.PLATE -> Color(0xFF7C8490)
+        FoodIllustration.EGG -> Color(0xFFB88F56)
+        else -> defaultInk
+    }
+    val soft = when (kind) {
+        FoodIllustration.CART, FoodIllustration.FISH -> Color(0xFFD9F2FF)
+        FoodIllustration.WATER -> Color(0xFFB9E7FA)
+        FoodIllustration.PLATE -> Color(0xFFF4F5F7)
+        FoodIllustration.EGG -> Color(0xFFFFE9B6)
+        else -> defaultSoft
+    }
     val paper = MaterialTheme.colorScheme.surface
     Canvas(modifier) {
         scale(size.width / 100f, size.height / 100f, Offset.Zero) {
@@ -31,6 +46,20 @@ fun FoodIllustration(kind: FoodIllustration, modifier: Modifier = Modifier) {
                     drawOval(ink, Offset(12f, 26f), Size(63f, 48f), style = Stroke(3f))
                     drawCircle(ink, 3f, Offset(29f, 45f))
                     drawArc(ink, -65f, 130f, false, Offset(20f, 33f), Size(23f, 34f), style = Stroke(2f))
+                }
+                FoodIllustration.EGG -> {
+                    val egg = Path().apply {
+                        moveTo(50f, 12f)
+                        cubicTo(29f, 12f, 18f, 34f, 20f, 57f)
+                        cubicTo(22f, 82f, 35f, 91f, 51f, 91f)
+                        cubicTo(68f, 91f, 81f, 81f, 80f, 57f)
+                        cubicTo(79f, 35f, 69f, 12f, 50f, 12f)
+                        close()
+                    }
+                    drawPath(egg, soft)
+                    drawPath(egg, ink, style = Stroke(3f))
+                    drawOval(Color(0xFFFFF7DA), Offset(32f, 31f), Size(24f, 19f))
+                    drawCircle(Color.White.copy(alpha = .8f), 4f, Offset(39f, 37f))
                 }
                 FoodIllustration.LEAF -> {
                     val leaf = Path().apply {

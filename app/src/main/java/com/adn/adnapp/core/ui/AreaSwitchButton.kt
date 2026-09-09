@@ -27,7 +27,7 @@ internal fun AreaSwitchButton(onOpen: () -> Unit, onCycle: () -> Unit) {
     val haptics = LocalHapticFeedback.current
     val base = LocalViewConfiguration.current
     val config = remember(base) {
-        object : ViewConfiguration by base { override val longPressTimeoutMillis: Long = 1500L }
+        object : ViewConfiguration by base { override val longPressTimeoutMillis: Long = 800L }
     }
     CompositionLocalProvider(LocalViewConfiguration provides config) {
         Surface(

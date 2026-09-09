@@ -56,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.adn.adnapp.R
 import com.adn.adnapp.core.ui.CompactTopBar
+import com.adn.adnapp.core.ui.OrganicBackButton
 import com.adn.adnapp.data.model.entity.UserProfile
 import com.adn.adnapp.data.model.entity.WeightEntry
 import com.adn.adnapp.domain.model.BodyGoal
@@ -82,7 +83,8 @@ fun ProfileScreen(
         viewModel.eventFlow.collect { if (it is ProfileEvent.NavigateToSplash) onNavigateToSplash() }
     }
 
-    Scaffold(topBar = { CompactTopBar(stringResource(R.string.title_profile), onBack) }) { padding ->
+    Scaffold { padding ->
+        Box(Modifier.fillMaxSize()) {
         when {
             state.isLoading -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
@@ -94,7 +96,7 @@ fun ProfileScreen(
             )
             else -> Column(
                 Modifier.fillMaxSize().padding(padding).imePadding().verticalScroll(rememberScrollState())
-                    .padding(start = 18.dp, end = 18.dp, top = 10.dp, bottom = LocalFloatingNavigationInset.current + 10.dp),
+                    .padding(start = 18.dp, end = 18.dp, top = 78.dp, bottom = LocalFloatingNavigationInset.current + 10.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 ProfileHeader(state.userProfile!!, state.isEditing, viewModel::startEditing)
@@ -115,6 +117,8 @@ fun ProfileScreen(
                 ) { Text(stringResource(R.string.logout)) }
                 Spacer(Modifier.height(10.dp))
             }
+        }
+        onBack?.let { OrganicBackButton(it, Modifier.align(Alignment.TopStart).padding(start = 10.dp, top = 8.dp)) }
         }
     }
 

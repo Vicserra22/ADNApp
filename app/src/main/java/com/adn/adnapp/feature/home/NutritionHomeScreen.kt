@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,9 +21,10 @@ fun NutritionHomeScreen(
     onMarket: () -> Unit,
     onDish: () -> Unit,
     onSaved: () -> Unit,
-    onWellness: () -> Unit = {}
+    onWellness: () -> Unit = {},
+    onSun: () -> Unit = onWellness
 ) {
-    Scaffold(topBar = { CompactTopBar("Nutrición") }) { padding ->
+    Scaffold { padding ->
         Column(
             Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState())
                 .padding(start = 20.dp, end = 20.dp, top = 24.dp, bottom = LocalFloatingNavigationInset.current + 24.dp),
@@ -37,11 +39,33 @@ fun NutritionHomeScreen(
             }
             FoodPortal("Lo mejor de la casa", "Tus propios platos", FoodIllustration.PLATE, 6, onDish,
                 Modifier.widthIn(max = 200.dp).fillMaxWidth())
-            TextButton(onClick = onSaved) { Text("Abrir nevera") }
+            Text("Colección rápida", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                IconChip("Súper", FoodIllustration.CART, onSuper, Modifier.weight(1f))
+                IconChip("Mercadillo", FoodIllustration.FRESH, onMarket, Modifier.weight(1f))
+                IconChip("Propios", FoodIllustration.PLATE, onDish, Modifier.weight(1f))
+                IconChip("Favoritos", FoodIllustration.EGG, onSaved, Modifier.weight(1f))
+            }
+            TextButton(onClick = onSaved, modifier = Modifier.semantics { contentDescription = "Abrir nevera" }) { Text("Abrir nevera") }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 FoodPortal("Agua", "Hidratación", FoodIllustration.WATER, 7, onWellness, Modifier.weight(1f))
-                FoodPortal("Sol", "Tiempo exterior", FoodIllustration.SUN, 8, onWellness, Modifier.weight(1f))
+                FoodPortal("Sol", "Tiempo exterior", FoodIllustration.SUN, 8, onSun, Modifier.weight(1f))
             }
+        }
+    }
+}
+
+@Composable
+private fun IconChip(label: String, illustration: FoodIllustration, onClick: () -> Unit, modifier: Modifier) {
+    Surface(
+        onClick = onClick,
+        modifier = modifier.height(62.dp).semantics { contentDescription = "Abrir $label" },
+        shape = RoundedCornerShape(18.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        tonalElevation = 3.dp
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            FoodIllustration(illustration, Modifier.size(42.dp))
         }
     }
 }
