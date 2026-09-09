@@ -23,9 +23,9 @@ fun AgendaAnalysisScreen(
     var selectedDay by rememberSaveable { mutableStateOf<String?>(null) }
     // Only implemented modules contribute scores. Missing modules never count as failures.
     val scores = if (AppArea.NUTRITION in state.visibleAreas) state.dayScores else emptyMap()
-    Scaffold(topBar = { CompactTopBar("Agenda · Análisis") }) { padding ->
+    Scaffold { padding ->
         LazyColumn(Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = LocalFloatingNavigationInset.current + 16.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 38.dp, bottom = LocalFloatingNavigationInset.current + 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)) {
             item {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,

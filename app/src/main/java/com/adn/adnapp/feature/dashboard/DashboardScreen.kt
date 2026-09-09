@@ -49,10 +49,10 @@ fun DashboardScreen(
     val nutritionState by nutritionViewModel.uiState.collectAsStateWithLifecycle()
     val todayConsumption = state.history[state.selectedDate]
 
-    Scaffold(topBar = { CompactTopBar("Nutrición") }) { padding ->
+    Scaffold { padding ->
         LazyColumn(
             Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = LocalFloatingNavigationInset.current + 16.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 38.dp, bottom = LocalFloatingNavigationInset.current + 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {

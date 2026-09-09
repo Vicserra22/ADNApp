@@ -56,10 +56,10 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun AgendaHomeScreen(viewModel: AgendaViewModel = koinViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    Scaffold(topBar = { CompactTopBar("Agenda") }) { padding ->
+    Scaffold { padding ->
         LazyColumn(
             Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = LocalFloatingNavigationInset.current + 20.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 38.dp, bottom = LocalFloatingNavigationInset.current + 20.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             item {
