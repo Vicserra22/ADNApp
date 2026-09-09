@@ -13,7 +13,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
 
-enum class FoodIllustration { CART, FRESH, PLATE, FISH, EGG, LEAF, FRUIT, DAIRY, GRAINS, WATER, SUN }
+enum class FoodIllustration { CART, FRESH, PLATE, FISH, EGG, HEART, LEAF, FRUIT, DAIRY, GRAINS, WATER, SUN }
 
 @Composable
 fun FoodIllustration(kind: FoodIllustration, modifier: Modifier = Modifier) {
@@ -25,6 +25,7 @@ fun FoodIllustration(kind: FoodIllustration, modifier: Modifier = Modifier) {
         FoodIllustration.CART, FoodIllustration.FISH, FoodIllustration.WATER -> Color(0xFF55B8EA)
         FoodIllustration.PLATE -> Color(0xFF7C8490)
         FoodIllustration.EGG -> Color(0xFFB88F56)
+        FoodIllustration.HEART -> Color(0xFFE66A7A)
         else -> defaultInk
     }
     val soft = when (kind) {
@@ -32,6 +33,7 @@ fun FoodIllustration(kind: FoodIllustration, modifier: Modifier = Modifier) {
         FoodIllustration.WATER -> Color(0xFFB9E7FA)
         FoodIllustration.PLATE -> Color(0xFFF4F5F7)
         FoodIllustration.EGG -> Color(0xFFFFE9B6)
+        FoodIllustration.HEART -> Color(0xFFFFD8DF)
         else -> defaultSoft
     }
     val paper = MaterialTheme.colorScheme.surface
@@ -60,6 +62,19 @@ fun FoodIllustration(kind: FoodIllustration, modifier: Modifier = Modifier) {
                     drawPath(egg, ink, style = Stroke(3f))
                     drawOval(Color(0xFFFFF7DA), Offset(32f, 31f), Size(24f, 19f))
                     drawCircle(Color.White.copy(alpha = .8f), 4f, Offset(39f, 37f))
+                }
+                FoodIllustration.HEART -> {
+                    val heart = Path().apply {
+                        moveTo(50f, 84f)
+                        cubicTo(43f, 77f, 17f, 61f, 17f, 42f)
+                        cubicTo(17f, 25f, 37f, 19f, 50f, 34f)
+                        cubicTo(63f, 19f, 83f, 25f, 83f, 42f)
+                        cubicTo(83f, 61f, 57f, 77f, 50f, 84f)
+                        close()
+                    }
+                    drawPath(heart, soft)
+                    drawPath(heart, ink, style = Stroke(3f))
+                    drawCircle(Color.White.copy(alpha = .7f), 4f, Offset(36f, 38f))
                 }
                 FoodIllustration.LEAF -> {
                     val leaf = Path().apply {
@@ -97,8 +112,6 @@ fun FoodIllustration(kind: FoodIllustration, modifier: Modifier = Modifier) {
                     }
                 }
                 FoodIllustration.CART -> {
-                    drawRoundRect(soft, Offset(31f, 26f), Size(17f, 30f), CornerRadius(5f))
-                    drawOval(ink.copy(alpha = .65f), Offset(53f, 19f), Size(15f, 25f))
                     val basket = Path().apply {
                         moveTo(20f, 34f); lineTo(85f, 34f); lineTo(77f, 65f)
                         lineTo(28f, 65f); close()

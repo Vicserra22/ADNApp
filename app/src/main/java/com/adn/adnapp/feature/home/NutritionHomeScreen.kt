@@ -27,7 +27,7 @@ fun NutritionHomeScreen(
     Scaffold { padding ->
         Column(
             Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState())
-                .padding(start = 20.dp, end = 20.dp, top = 24.dp, bottom = LocalFloatingNavigationInset.current + 24.dp),
+                .statusBarsPadding().padding(start = 20.dp, end = 20.dp, top = 24.dp, bottom = LocalFloatingNavigationInset.current + 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
@@ -39,33 +39,11 @@ fun NutritionHomeScreen(
             }
             FoodPortal("Lo mejor de la casa", "Tus propios platos", FoodIllustration.PLATE, 6, onDish,
                 Modifier.widthIn(max = 200.dp).fillMaxWidth())
-            Text("Colección rápida", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                IconChip("Súper", FoodIllustration.CART, onSuper, Modifier.weight(1f))
-                IconChip("Mercadillo", FoodIllustration.FRESH, onMarket, Modifier.weight(1f))
-                IconChip("Propios", FoodIllustration.PLATE, onDish, Modifier.weight(1f))
-                IconChip("Favoritos", FoodIllustration.EGG, onSaved, Modifier.weight(1f))
-            }
             TextButton(onClick = onSaved, modifier = Modifier.semantics { contentDescription = "Abrir nevera" }) { Text("Abrir nevera") }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 FoodPortal("Agua", "Hidratación", FoodIllustration.WATER, 7, onWellness, Modifier.weight(1f))
                 FoodPortal("Sol", "Tiempo exterior", FoodIllustration.SUN, 8, onSun, Modifier.weight(1f))
             }
-        }
-    }
-}
-
-@Composable
-private fun IconChip(label: String, illustration: FoodIllustration, onClick: () -> Unit, modifier: Modifier) {
-    Surface(
-        onClick = onClick,
-        modifier = modifier.height(62.dp).semantics { contentDescription = "Abrir $label" },
-        shape = RoundedCornerShape(18.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        tonalElevation = 3.dp
-    ) {
-        Box(contentAlignment = Alignment.Center) {
-            FoodIllustration(illustration, Modifier.size(42.dp))
         }
     }
 }

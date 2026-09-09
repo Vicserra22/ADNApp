@@ -70,6 +70,8 @@ fun MainScreen(onNavigateToSplash: () -> Unit, onNavigateToDietSelection: () -> 
     var activeArea by rememberSaveable { mutableStateOf(AppArea.NUTRITION) }
     var selectorOpen by rememberSaveable { mutableStateOf(false) }
     var cycleSettingsOpen by rememberSaveable { mutableStateOf(false) }
+    var lastHomeSubRoute by rememberSaveable { mutableStateOf<String?>(null) }
+    var homeWasRestored by rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
     val cyclePreferences = remember(context) { AreaCyclePreferences(context) }
     var areaCycle by remember { mutableStateOf(cyclePreferences.load()) }
@@ -94,7 +96,7 @@ fun MainScreen(onNavigateToSplash: () -> Unit, onNavigateToDietSelection: () -> 
                                     if (tab == null) {
                                         AreaSwitchButton(
                                             onOpen = { selectorOpen = true },
-                                            onCycle = { activeArea = nextArea(activeArea, areaCycle) }
+                                            onCycle = { lastHomeSubRoute = null; homeWasRestored = false; activeArea = nextArea(activeArea, areaCycle) }
                                         )
                                     } else {
                                         val selected = route == tab.route ||
@@ -114,15 +116,34 @@ fun MainScreen(onNavigateToSplash: () -> Unit, onNavigateToDietSelection: () -> 
                                             onClick = {
                                                     if (tab == AreaTab.FRIDGE) {
                                                         navController.navigate(Screen.SavedFoods.route) { launchSingleTop = true }
-                                                    } else if (tab == AreaTab.HOME && route == AreaTab.HOME.route) {
-                                                        // Tapping Home again is an intentional reset gesture.
-                                                        navController.navigate(AreaTab.HOME.route) {
-                                                            popUpTo(AreaTab.HOME.route) { inclusive = true }
+                                                    } else if (tab == AreaTab.HOME) {
+                                                        if (homeWasRestored || route == AreaTab.HOME.route) {
+                                                            // Once the remembered sub-screen is visible, Home again resets it.
+                                                            homeWasRestored = false
+                                                            lastHomeSubRoute = null
+                                                            navController.navigate(AreaTab.HOME.route) {
+                                                                popUpTo(AreaTab.HOME.route) { inclusive = true }
+                                                            }
+                                                        } else if (lastHomeSubRoute != null) {
+                                                            navController.navigate(lastHomeSubRoute!!) { launchSingleTop = true }
+                                                            homeWasRestored = true
+                                                        } else navController.navigate(AreaTab.HOME.route) { launchSingleTop = true }
+                                                    } else {
+                                                        if (route in listOf(Screen.FoodSearch.route, Screen.FreshMarket.route, Screen.SavedFoods.route, Screen.CustomDish.route, Screen.Wellness.route, Screen.WellnessSun.route)) {
+                                                            lastHomeSubRoute = route
+                                                            homeWasRestored = false
                                                         }
-                                                    } else navController.navigate(tab.route) {
-                                                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                                        launchSingleTop = true
-                                                        restoreState = true
+                                                        if (tab == AreaTab.SETTINGS) {
+                                                            navController.navigate(AreaTab.SETTINGS.route) {
+                                                                popUpTo(navController.graph.findStartDestination().id) { saveState = false }
+                                                                launchSingleTop = true
+                                                                restoreState = false
+                                                            }
+                                                        } else navController.navigate(tab.route) {
+                                                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                                            launchSingleTop = true
+                                                            restoreState = true
+                                                        }
                                                     }
                                                 },
                                             modifier = Modifier.widthIn(max = 72.dp).fillMaxWidth().height(76.dp).semantics {
@@ -151,7 +172,7 @@ fun MainScreen(onNavigateToSplash: () -> Unit, onNavigateToDietSelection: () -> 
                 // Capture this host's area: outgoing destinations must never read a new mode.
                 val hostArea = activeArea
                 NavHost(navController, AreaTab.HOME.route,
-                    Modifier.fillMaxSize().imePadding(),
+                Modifier.fillMaxSize().imePadding(),
                     enterTransition = { EnterTransition.None },
                     exitTransition = { ExitTransition.None },
                     popEnterTransition = { EnterTransition.None },
@@ -184,7 +205,7 @@ fun MainScreen(onNavigateToSplash: () -> Unit, onNavigateToDietSelection: () -> 
                     }
                     composable(AreaTab.FRIDGE.route) {
                         if (hostArea == AppArea.NUTRITION) {
-                            FoodSearchScreen(initialSection = FoodSection.SAVED, onBack = { navController.popBackStack() })
+                            FoodSearchScreen(initialSection = FoodSection.SAVED, onBack = { navController.popBackStack() }, fridgeOnly = true)
                         } else AreaLanding(hostArea, AreaTab.SOON)
                     }
                     composable(AreaTab.SOON.route) { AreaLanding(hostArea, AreaTab.SOON) }
@@ -205,7 +226,7 @@ fun MainScreen(onNavigateToSplash: () -> Unit, onNavigateToDietSelection: () -> 
                             FoodSearchScreen(initialSection = FoodSection.FRESH, onBack = { navController.popBackStack() })
                         }
                         composable(Screen.SavedFoods.route) {
-                            FoodSearchScreen(initialSection = FoodSection.SAVED, onBack = { navController.popBackStack() })
+                            FoodSearchScreen(initialSection = FoodSection.SAVED, onBack = { navController.popBackStack() }, fridgeOnly = true)
                         }
                         composable(Screen.CustomDish.route) {
                             CustomDishScreen(onBack = { navController.popBackStack() })
@@ -265,7 +286,7 @@ fun MainScreen(onNavigateToSplash: () -> Unit, onNavigateToDietSelection: () -> 
                         val colors = area.palette()
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Surface(
-                                onClick = { activeArea = area; selectorOpen = false },
+                                onClick = { lastHomeSubRoute = null; homeWasRestored = false; activeArea = area; selectorOpen = false },
                                 shape = CircleShape,
                                 color = colors.soft,
                                 contentColor = colors.ink,
@@ -301,7 +322,7 @@ private fun AreaLanding(
 ) {
     Scaffold { padding ->
         Column(
-            Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState())
+            Modifier.fillMaxSize().padding(padding).statusBarsPadding().verticalScroll(rememberScrollState())
                 .padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = LocalFloatingNavigationInset.current + 20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -344,7 +365,7 @@ private fun AreaLanding(
 @Composable
 private fun NutritionSettingsScreen(onDiet: () -> Unit, onProfile: () -> Unit) {
     Column(
-        Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp, top = 24.dp,
+        Modifier.fillMaxSize().statusBarsPadding().padding(start = 16.dp, end = 16.dp, top = 24.dp,
             bottom = LocalFloatingNavigationInset.current + 20.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {

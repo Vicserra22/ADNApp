@@ -18,7 +18,12 @@ import com.adn.adnapp.core.ui.FoodIllustration
 internal fun FoodCategoryBubbles(categories: List<String>, selected: String?, onSelect: (String) -> Unit) {
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         val cellWidth = (maxWidth - 16.dp) / 3
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(10.dp), maxItemsInEachRow = 3) {
+        FlowRow(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            maxItemsInEachRow = 3
+        ) {
             categories.forEachIndexed { index, category ->
                 Column(Modifier.width(cellWidth).padding(top = if (index % 3 == 1) 12.dp else 0.dp),
                     horizontalAlignment = Alignment.CenterHorizontally) {

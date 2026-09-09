@@ -4,6 +4,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -32,6 +33,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -39,6 +42,7 @@ import coil.compose.AsyncImage
 import com.adn.adnapp.data.model.entity.Product
 import com.adn.adnapp.data.model.entity.ProductNutrient
 import com.adn.adnapp.core.ui.OrganicBackButton
+import com.adn.adnapp.core.ui.FoodIllustration
 import com.adn.adnapp.core.ui.LocalFloatingNavigationInset
 import com.adn.adnapp.core.ui.EntryDateSheet
 import com.adn.adnapp.core.ui.readableDate
@@ -53,7 +57,8 @@ import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 fun FoodSearchScreen(
     viewModel: HomeViewModel = koinViewModel(),
     initialSection: FoodSection = FoodSection.PRODUCTS,
-    onBack: (() -> Unit)? = null
+    onBack: (() -> Unit)? = null,
+    fridgeOnly: Boolean = false
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var infoProduct by remember { mutableStateOf<Product?>(null) }
@@ -77,27 +82,25 @@ fun FoodSearchScreen(
     }
 
     Scaffold { padding ->
-        Box(Modifier.fillMaxSize()) {
+        Box(Modifier.fillMaxSize().statusBarsPadding()) {
         LazyColumn(
             Modifier.fillMaxSize().padding(padding),
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = if (onBack != null) 78.dp else 12.dp, bottom = LocalFloatingNavigationInset.current + 12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            item { Text("Registro para " + state.screenDate.readableDate(),
+            if (!fridgeOnly) item { Text("Registro para " + state.screenDate.readableDate(),
                 style = MaterialTheme.typography.labelMedium) }
-            item {
+            if (!fridgeOnly) item {
                 Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FoodSection.entries.forEach { section ->
                         FilterChip(
                             selected = state.foodSection == section,
                             onClick = { viewModel.onFoodSectionChanged(section) },
-                            label = { Text(when (section) {
-                                FoodSection.PRODUCTS -> "Súper"
-                                FoodSection.FRESH -> "Mercadillo"
-                                FoodSection.CUSTOM -> "Propios"
-                                FoodSection.SAVED -> "Favoritos"
-                            }) },
-                            modifier = Modifier.widthIn(min = 108.dp)
+                            leadingIcon = { FoodIllustration(section.illustration(), Modifier.size(30.dp)) },
+                            label = {},
+                            modifier = Modifier.size(58.dp).semantics {
+                                contentDescription = "Abrir ${section.label()}"
+                            },
                         )
                     }
                 }
@@ -174,7 +177,11 @@ fun FoodSearchScreen(
                 FoodSection.CUSTOM, FoodSection.SAVED -> {
                     item { FridgeHeader() }
                     item {
-                        Text(if (state.foodSection == FoodSection.CUSTOM) "Tus platos personalizados, guardados automáticamente como favoritos." else "Tus alimentos favoritos. Toca una tarjeta para consultar todos sus nutrientes.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(when {
+                            fridgeOnly -> "Tu enciclopedia local de alimentos usados, favoritos y platos propios. Toca una ficha para consultar toda su información."
+                            state.foodSection == FoodSection.CUSTOM -> "Tus platos personalizados, guardados automáticamente como favoritos."
+                            else -> "Tus alimentos favoritos. Toca una tarjeta para consultar todos sus nutrientes."
+                        }, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
@@ -204,15 +211,16 @@ fun FoodSearchScreen(
                         (freshQuery.isBlank() || product.name.contains(freshQuery, ignoreCase = true))
                 }
                 FoodSection.CUSTOM -> state.favoriteFoods.filter { it.code.startsWith("dish:") }
-                FoodSection.SAVED -> state.favoriteFoods.filterNot { it.code.startsWith("dish:") }
+                FoodSection.SAVED -> if (fridgeOnly) {
+                    (state.favoriteFoods + state.recentFoods).distinctBy { it.code }
+                } else state.favoriteFoods.filterNot { it.code.startsWith("dish:") }
             }
             if (state.foodSection in listOf(FoodSection.CUSTOM, FoodSection.SAVED) && visibleProducts.isEmpty()) item {
                 Text("Aún no tienes alimentos guardados. Marca el corazón de cualquier producto para encontrarlo aquí.", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             items(visibleProducts, key = { it.code }) { product ->
-                if (state.foodSection == FoodSection.CUSTOM || state.foodSection == FoodSection.SAVED) {
-                    FridgeProductCard(product, onInfo = { infoProduct = product }, onAdd = { viewModel.onProductSelected(product) },
-                        isFavorite = product.code in state.favoriteCodes, onFavorite = { viewModel.toggleFavorite(product) })
+                if (fridgeOnly || state.foodSection == FoodSection.CUSTOM || state.foodSection == FoodSection.SAVED) {
+                    FridgeProductCard(product, onInfo = { infoProduct = product })
                 } else ProductResultCard(
                     product = product,
                     onInfo = { infoProduct = product },
@@ -329,23 +337,17 @@ private fun ProductResultCard(
 @Composable
 private fun FridgeProductCard(
     product: Product,
-    onInfo: () -> Unit,
-    onAdd: () -> Unit,
-    isFavorite: Boolean,
-    onFavorite: () -> Unit
+    onInfo: () -> Unit
 ) {
-    Card(shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth().height(188.dp)) {
+    Card(shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth().height(188.dp).clickable(onClick = onInfo)) {
         Row(Modifier.fillMaxSize()) {
             ProductImage(product, Modifier.size(132.dp).align(Alignment.CenterVertically).padding(8.dp).clip(RoundedCornerShape(14.dp)))
             Column(Modifier.weight(1f).padding(vertical = 12.dp, horizontal = 6.dp), verticalArrangement = Arrangement.SpaceBetween) {
                 Text(product.name, fontWeight = FontWeight.Bold, maxLines = 3, overflow = TextOverflow.Ellipsis)
                 Text("${product.calories.pretty()} kcal · ${product.proteins.pretty()} g proteína", style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Row {
-                    IconButton(onClick = onFavorite, modifier = Modifier.size(34.dp)) { Icon(if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder, "Favorito") }
-                    IconButton(onClick = onInfo, modifier = Modifier.size(34.dp)) { Icon(Icons.Default.Info, "Información nutricional") }
-                    IconButton(onClick = onAdd, modifier = Modifier.size(34.dp)) { Icon(Icons.Default.Add, "Añadir") }
-                }
+                Text("Abrir ficha completa", style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary)
             }
         }
     }
@@ -533,3 +535,17 @@ private fun AddProductSheet(
 
 private fun Double.pretty(): String = if (this % 1.0 == 0.0) toInt().toString()
 else String.format(Locale.getDefault(), "%.1f", this)
+
+private fun FoodSection.label() = when (this) {
+    FoodSection.PRODUCTS -> "Súper"
+    FoodSection.FRESH -> "Mercadillo"
+    FoodSection.CUSTOM -> "Propios"
+    FoodSection.SAVED -> "Favoritos"
+}
+
+private fun FoodSection.illustration() = when (this) {
+    FoodSection.PRODUCTS -> FoodIllustration.CART
+    FoodSection.FRESH -> FoodIllustration.FRESH
+    FoodSection.CUSTOM -> FoodIllustration.PLATE
+    FoodSection.SAVED -> FoodIllustration.HEART
+}

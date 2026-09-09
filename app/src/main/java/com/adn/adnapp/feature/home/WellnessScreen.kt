@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -31,12 +32,17 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -82,7 +88,7 @@ fun WellnessScreen(
             scrollState.animateScrollTo((sunPosition - with(density) { 86.dp.toPx() }).toInt().coerceAtLeast(0))
         }
     }
-    Box(Modifier.fillMaxSize()) {
+    Box(Modifier.fillMaxSize().statusBarsPadding()) {
         Column(
             Modifier.fillMaxSize().verticalScroll(scrollState)
                 .padding(start = 16.dp, end = 16.dp, top = 78.dp, bottom = LocalFloatingNavigationInset.current + 20.dp),
@@ -103,6 +109,7 @@ fun WellnessScreen(
 @Composable
 private fun WaterCard(state: WellnessUiState, viewModel: WellnessViewModel) {
     val progress = (state.waterTotalMl / state.waterGoalMl).toFloat().coerceIn(0f, 1f)
+    var manualOpen by rememberSaveable { mutableIntStateOf(0) }
     Card(shape = RoundedCornerShape(26.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -112,7 +119,8 @@ private fun WaterCard(state: WellnessUiState, viewModel: WellnessViewModel) {
             Box(Modifier.fillMaxWidth().height(350.dp), contentAlignment = Alignment.Center) { Bottle(progress, viewModel::addQuickWater) }
             Text("Toca la botella para añadir 250 ml", color = MaterialTheme.colorScheme.onSurfaceVariant)
             Button(onClick = viewModel::addQuickWater, modifier = Modifier.fillMaxWidth()) { Text("Añadir un vaso · 250 ml") }
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            ManualToggle(manualOpen == 1) { manualOpen = if (manualOpen == 1) 0 else 1 }
+            if (manualOpen == 1) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = state.waterInput,
                     onValueChange = viewModel::onWaterInputChanged,
@@ -174,16 +182,23 @@ private fun WaterHistoryRow(log: WaterLog, onUndo: (WaterLog) -> Unit) {
 
 @Composable
 private fun SunCard(state: WellnessUiState, viewModel: WellnessViewModel, modifier: Modifier = Modifier) {
-    var selectedMinutes by remember(state.sunTotalMinutes) { mutableIntStateOf((state.sunTotalMinutes % 60).coerceIn(0, 60)) }
+    val previousMinutes = (state.sunTotalMinutes - state.sunDeltaMinutes).coerceAtLeast(0)
+    val delta = state.sunDeltaMinutes
+    var manualOpen by rememberSaveable { mutableIntStateOf(0) }
     Card(modifier = modifier, shape = RoundedCornerShape(26.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Sol", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                Text("${state.sunTotalMinutes} min", fontWeight = FontWeight.Bold)
+            Text("Sol", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Minutos: $previousMinutes", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                    if (delta != 0) Text("  ${if (delta > 0) "+" else "−"}${kotlin.math.abs(delta)}",
+                        color = if (delta > 0) Color(0xFF238B57) else MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                }
             }
-            Text("Escala visual de registro · 12 soles de 5 minutos", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            SunScale(selectedMinutes) { selectedMinutes = it }
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            SunScale(state.sunTotalMinutes.coerceIn(0, 60), viewModel::setSunMinutes)
+            ManualToggle(manualOpen == 1) { manualOpen = if (manualOpen == 1) 0 else 1 }
+            if (manualOpen == 1) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = state.sunInput,
                     onValueChange = viewModel::onSunInputChanged,
@@ -194,10 +209,19 @@ private fun SunCard(state: WellnessUiState, viewModel: WellnessViewModel, modifi
                 )
                 TextButton(onClick = viewModel::addSunFromInput) { Text("Añadir") }
             }
-            Button(onClick = { if (selectedMinutes > 0) viewModel.addSun(selectedMinutes) }, enabled = selectedMinutes > 0, modifier = Modifier.fillMaxWidth()) {
-                Text("Guardar ${selectedMinutes} min")
-            }
-            state.sunLogs.take(4).forEach { log -> SunHistoryRow(log, viewModel::undoSun) }
+            state.sunLogs.forEach { log -> SunHistoryRow(log, viewModel::undoSun) }
+        }
+    }
+}
+
+@Composable
+private fun ManualToggle(expanded: Boolean, onClick: () -> Unit) {
+    Surface(onClick = onClick, shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.surface,
+        modifier = Modifier.fillMaxWidth()) {
+        Row(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 11.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text("Añadir datos manualmente", modifier = Modifier.weight(1f), fontWeight = FontWeight.SemiBold)
+            Icon(if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                contentDescription = if (expanded) "Cerrar datos manuales" else "Abrir datos manuales")
         }
     }
 }
@@ -228,7 +252,7 @@ private fun SunScale(selectedMinutes: Int, onMinutesChanged: (Int) -> Unit) {
 private fun SunDot(filled: Boolean, minutes: Int, onMinutesChanged: (Int) -> Unit) {
     val unfilled = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = .45f)
     val color = if (filled) Color(0xFFF3B63F) else unfilled
-    Box(Modifier.size(64.dp).clickable { onMinutesChanged(minutes) }.semantics { contentDescription = "Sol de $minutes minutos" }) {
+    Box(Modifier.size(64.dp).clickable { onMinutesChanged(if (filled) (minutes - 5).coerceAtLeast(0) else minutes) }.semantics { contentDescription = "Sol de $minutes minutos" }) {
         Canvas(Modifier.fillMaxSize()) {
             val center = Offset(size.width / 2f, size.height / 2f)
             drawCircle(color, size.minDimension * .24f, center)
@@ -245,7 +269,8 @@ private fun SunDot(filled: Boolean, minutes: Int, onMinutesChanged: (Int) -> Uni
 @Composable
 private fun SunHistoryRow(log: SunLog, onUndo: (SunLog) -> Unit) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text("${log.minutes} min", modifier = Modifier.weight(1f))
+        Text("${if (log.minutes >= 0) "+" else "−"}${kotlin.math.abs(log.minutes)} min", modifier = Modifier.weight(1f),
+            color = if (log.minutes >= 0) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error)
         IconButton(onClick = { onUndo(log) }, modifier = Modifier.semantics { contentDescription = "Deshacer ${log.minutes} minutos" }) {
             Text("↶", style = MaterialTheme.typography.titleLarge)
         }

@@ -32,7 +32,8 @@ internal object NavigationIcons {
         "M15 12a3 3 0 1 1-6 0a3 3 0 1 1 6 0"
     ) }
     val Fridge by lazy { outline("Refrigerator",
-        "M5 3h14v18H5z", "M9 7v3", "M9 14v3", "M15 7v3", "M15 14v3"
+        "M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z",
+        "M5 11h14", "M9 7v2", "M9 15v2", "M15 7v2", "M15 15v2"
     ) }
     val Profile by lazy { outline("Profile",
         "M20 21a8 8 0 0 0-16 0", "M12 13a4 4 0 1 0 0-8a4 4 0 0 0 0 8"

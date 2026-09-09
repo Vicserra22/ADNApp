@@ -40,7 +40,7 @@ internal fun CustomDishContent(
     var grams by rememberSaveable { mutableStateOf("") }
     val selected = state.foods.firstOrNull { it.code == selectedCode }
     Scaffold { padding ->
-        Box(Modifier.fillMaxSize()) {
+        Box(Modifier.fillMaxSize().statusBarsPadding()) {
         LazyColumn(
             Modifier.fillMaxSize().padding(padding),
             contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 78.dp, bottom = LocalFloatingNavigationInset.current + 24.dp),

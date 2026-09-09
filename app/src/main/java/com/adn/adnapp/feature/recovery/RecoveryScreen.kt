@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -36,7 +37,7 @@ import org.koin.androidx.compose.koinViewModel
 fun RecoveryScreen(onBack: (() -> Unit)? = null, viewModel: RecoveryViewModel = koinViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     Scaffold { padding ->
-        androidx.compose.foundation.layout.Box(Modifier.fillMaxSize()) {
+        androidx.compose.foundation.layout.Box(Modifier.fillMaxSize().statusBarsPadding()) {
         Column(Modifier.fillMaxSize().padding(padding).padding(start = 16.dp, end = 16.dp, top = 78.dp, bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Text("Recuperación", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
             Text("Una pulsera puede alimentar estos datos a través de Health Connect cuando concedas permiso.", color = MaterialTheme.colorScheme.onSurfaceVariant)

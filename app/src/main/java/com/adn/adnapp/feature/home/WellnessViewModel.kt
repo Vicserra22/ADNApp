@@ -21,6 +21,7 @@ data class WellnessUiState(
     val waterInput: String = "250",
     val sunInput: String = "5",
     val waterGoalMl: Double = 2_000.0,
+    val sunDeltaMinutes: Int = 0,
     val isSaving: Boolean = false,
     val error: String? = null,
     val message: String? = null
@@ -121,12 +122,22 @@ class WellnessViewModel(
     fun addSun(minutes: Int) {
         if (minutes !in 1..720) return
         store.addSun(SunLog(ownerId = ownerId, date = _uiState.value.date, minutes = minutes))
-        _uiState.update { it.copy(error = null, message = "Tiempo exterior registrado") }
+        _uiState.update { it.copy(error = null, message = null, sunDeltaMinutes = minutes) }
+    }
+
+    /** Changes the number of painted suns for today and persists it immediately. */
+    fun setSunMinutes(target: Int) {
+        val bounded = target.coerceIn(0, 60)
+        val current = _uiState.value.sunTotalMinutes.coerceIn(0, 60)
+        val delta = bounded - current
+        if (delta == 0) return
+        store.addSun(SunLog(ownerId = ownerId, date = _uiState.value.date, minutes = delta))
+        _uiState.update { it.copy(error = null, message = null, sunDeltaMinutes = delta) }
     }
 
     fun undoSun(log: SunLog) {
         store.removeSun(log.id)
-        _uiState.update { it.copy(message = "Registro de sol deshecho") }
+        _uiState.update { it.copy(message = null, sunDeltaMinutes = -log.minutes) }
     }
 
     fun clearMessage() = _uiState.update { it.copy(message = null, error = null) }
