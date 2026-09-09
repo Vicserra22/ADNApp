@@ -50,6 +50,7 @@ import com.adn.adnapp.feature.home.WellnessScreen
 import com.adn.adnapp.feature.agenda.AgendaHomeScreen
 import com.adn.adnapp.feature.sports.SportsHomeScreen
 import com.adn.adnapp.feature.sports.SportsAnalysisScreen
+import com.adn.adnapp.feature.recovery.RecoveryScreen
 import com.adn.adnapp.feature.profile.ProfileScreen
 
 private enum class AreaTab(val route: String, val title: String) {
@@ -144,7 +145,7 @@ fun MainScreen(onNavigateToSplash: () -> Unit, onNavigateToDietSelection: () -> 
                             onSaved = { navController.navigate(Screen.SavedFoods.route) },
                             onWellness = { navController.navigate(Screen.Wellness.route) }
                         ) else if (hostArea == AppArea.AGENDA) AgendaHomeScreen()
-                        else if (hostArea == AppArea.SPORTS) SportsHomeScreen()
+                        else if (hostArea == AppArea.SPORTS) SportsHomeScreen(onOpenRecovery = { navController.navigate(Screen.Recovery.route) })
                         else AreaLanding(hostArea, AreaTab.HOME,
                             onSearch = { navController.navigate(Screen.FoodSearch.route) },
                             onDiet = onNavigateToDietSelection,
@@ -193,6 +194,9 @@ fun MainScreen(onNavigateToSplash: () -> Unit, onNavigateToDietSelection: () -> 
                             DayViewerScreen(entry.arguments?.getString("date") ?: return@composable,
                                 onBack = { navController.popBackStack() })
                         }
+                    }
+                    if (hostArea == AppArea.SPORTS) {
+                        composable(Screen.Recovery.route) { RecoveryScreen() }
                     }
                 }
             }

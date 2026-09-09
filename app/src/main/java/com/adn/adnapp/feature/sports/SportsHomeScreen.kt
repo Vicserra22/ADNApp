@@ -48,7 +48,7 @@ import com.adn.adnapp.domain.model.SportSession
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun SportsHomeScreen(viewModel: SportsViewModel = koinViewModel()) {
+fun SportsHomeScreen(onOpenRecovery: () -> Unit = {}, viewModel: SportsViewModel = koinViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     Scaffold(topBar = { CompactTopBar("Deporte") }) { padding ->
         LazyColumn(Modifier.fillMaxSize().padding(padding), contentPadding = PaddingValues(16.dp, 14.dp, 16.dp, LocalFloatingNavigationInset.current + 20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -58,6 +58,7 @@ fun SportsHomeScreen(viewModel: SportsViewModel = koinViewModel()) {
             }
             item { SportCarousel(state.selectedSport, viewModel::selectSport) }
             item { SportsSummary(state) }
+            item { Button(onOpenRecovery, Modifier.fillMaxWidth().semantics { contentDescription = "Abrir Pasos y sueño" }) { Text("Pasos y sueño") } }
             item { SessionForm(state, viewModel) }
             if (state.selectedSessions.isEmpty()) item { Text("Aún no hay sesiones de ${state.selectedSport.label.lowercase()}.", color = MaterialTheme.colorScheme.onSurfaceVariant) }
             items(state.selectedSessions, key = { it.id }) { session -> SessionCard(session, viewModel::remove) }

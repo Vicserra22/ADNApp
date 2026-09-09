@@ -7,6 +7,8 @@ import com.adn.adnapp.data.local.WellnessStore
 import com.adn.adnapp.data.local.AgendaReminderScheduler
 import com.adn.adnapp.data.local.AgendaStore
 import com.adn.adnapp.data.local.SportsStore
+import com.adn.adnapp.data.local.RecoveryStore
+import com.adn.adnapp.data.local.HealthConnectLauncher
 import org.koin.dsl.module
 
 val localFoodModule = module {
@@ -23,4 +25,6 @@ val localFoodModule = module {
     single { AgendaStore(get()) }
     single { AgendaReminderScheduler(get()) }
     single { SportsStore(get()) }
+    single { RecoveryStore(get()) }
+    single { HealthConnectLauncher(get()) }
 }
