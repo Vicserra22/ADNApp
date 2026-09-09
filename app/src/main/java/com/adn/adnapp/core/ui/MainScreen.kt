@@ -48,6 +48,8 @@ import com.adn.adnapp.feature.home.NutritionHomeScreen
 import com.adn.adnapp.feature.home.CustomDishScreen
 import com.adn.adnapp.feature.home.WellnessScreen
 import com.adn.adnapp.feature.agenda.AgendaHomeScreen
+import com.adn.adnapp.feature.sports.SportsHomeScreen
+import com.adn.adnapp.feature.sports.SportsAnalysisScreen
 import com.adn.adnapp.feature.profile.ProfileScreen
 
 private enum class AreaTab(val route: String, val title: String) {
@@ -142,6 +144,7 @@ fun MainScreen(onNavigateToSplash: () -> Unit, onNavigateToDietSelection: () -> 
                             onSaved = { navController.navigate(Screen.SavedFoods.route) },
                             onWellness = { navController.navigate(Screen.Wellness.route) }
                         ) else if (hostArea == AppArea.AGENDA) AgendaHomeScreen()
+                        else if (hostArea == AppArea.SPORTS) SportsHomeScreen()
                         else AreaLanding(hostArea, AreaTab.HOME,
                             onSearch = { navController.navigate(Screen.FoodSearch.route) },
                             onDiet = onNavigateToDietSelection,
@@ -152,7 +155,8 @@ fun MainScreen(onNavigateToSplash: () -> Unit, onNavigateToDietSelection: () -> 
                             navController.navigate(Screen.DayViewer.createRoute(it))
                         }) else if (hostArea == AppArea.AGENDA) AgendaAnalysisScreen(
                             onOpenNutritionDay = { navController.navigate(Screen.DayViewer.createRoute(it)) }
-                        ) else AreaLanding(hostArea, AreaTab.ANALYSIS)
+                        ) else if (hostArea == AppArea.SPORTS) SportsAnalysisScreen()
+                        else AreaLanding(hostArea, AreaTab.ANALYSIS)
                     }
                     composable(AreaTab.SOON.route) { AreaLanding(hostArea, AreaTab.SOON) }
                     composable(AreaTab.SETTINGS.route) {

@@ -6,7 +6,7 @@ Fecha: 9 de septiembre de 2026. Estado: alcance de esta etapa fijado por el usua
 
 Esta decisión sustituye la propuesta anterior de recorrer todas las fases. El objetivo actual es completar diseño y navegación, nutrición visual, organización, deporte personal, pasos/sueño y finanzas propias. El esfuerzo disponible se concentra en estas áreas.
 
-- **Incluido:** P0, P1, P2, P3, P4 y P5, con los criterios de calidad de la sección 8. P0 está cerrado en `a4d071f`; P1 en `e8cc650`; P2 queda cerrado con la entrega de Agenda y su commit asociado.
+- **Incluido:** P0, P1, P2, P3, P4 y P5, con los criterios de calidad de la sección 8. P0 está cerrado en `a4d071f`; P1 en `e8cc650`; P2 y P3 se cierran en la rama `ADN-3.0` con sus entregas asociadas.
 - **Pausado:** P6 (bancos y mercado), P7 (recetas y lectura externa), P8 (sitios/restaurantes/ocio) y P9 (competiciones y cuotas). Se conservan las ideas como referencia; no se desarrollan pantallas, conectores o servicios de esas fases ahora.
 - **Foro:** continúa aparcado.
 - **Cierre de calidad:** la antigua P10 se incorpora como revisión transversal y cierre de P0–P5. No se posponen las pruebas ni la integración final por quedar numeradas después de P5.
