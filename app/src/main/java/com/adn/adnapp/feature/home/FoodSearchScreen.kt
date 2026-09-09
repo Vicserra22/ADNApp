@@ -52,7 +52,7 @@ import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun FoodSearchScreen(
     viewModel: HomeViewModel = koinViewModel(),
@@ -218,7 +218,9 @@ fun FoodSearchScreen(
             if (state.foodSection in listOf(FoodSection.CUSTOM, FoodSection.SAVED) && visibleProducts.isEmpty()) item {
                 Text("Aún no tienes alimentos guardados. Marca el corazón de cualquier producto para encontrarlo aquí.", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            items(visibleProducts, key = { it.code }) { product ->
+            if (fridgeOnly) item {
+                FridgeGrid(visibleProducts, onInfo = { infoProduct = it })
+            } else items(visibleProducts, key = { it.code }) { product ->
                 if (fridgeOnly || state.foodSection == FoodSection.CUSTOM || state.foodSection == FoodSection.SAVED) {
                     FridgeProductCard(product, onInfo = { infoProduct = product })
                 } else ProductResultCard(
@@ -337,17 +339,32 @@ private fun ProductResultCard(
 @Composable
 private fun FridgeProductCard(
     product: Product,
-    onInfo: () -> Unit
+    onInfo: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Card(shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth().height(188.dp).clickable(onClick = onInfo)) {
-        Row(Modifier.fillMaxSize()) {
-            ProductImage(product, Modifier.size(132.dp).align(Alignment.CenterVertically).padding(8.dp).clip(RoundedCornerShape(14.dp)))
-            Column(Modifier.weight(1f).padding(vertical = 12.dp, horizontal = 6.dp), verticalArrangement = Arrangement.SpaceBetween) {
-                Text(product.name, fontWeight = FontWeight.Bold, maxLines = 3, overflow = TextOverflow.Ellipsis)
-                Text("${product.calories.pretty()} kcal · ${product.proteins.pretty()} g proteína", style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text("Abrir ficha completa", style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary)
+    Card(shape = RoundedCornerShape(18.dp), modifier = modifier.fillMaxWidth().height(174.dp).clickable(onClick = onInfo)) {
+        Column(Modifier.fillMaxSize().padding(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            ProductImage(product, Modifier.fillMaxWidth().height(88.dp).clip(RoundedCornerShape(14.dp)))
+            Text(product.name, fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Text("${product.calories.pretty()} kcal · ${product.proteins.pretty()} g proteína", style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+    }
+}
+
+@Composable
+@OptIn(ExperimentalLayoutApi::class)
+private fun FridgeGrid(products: List<Product>, onInfo: (Product) -> Unit) {
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        val cellWidth = (maxWidth - 16.dp) / 3
+        FlowRow(
+            Modifier.fillMaxWidth(),
+            maxItemsInEachRow = 3,
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            products.forEach { product ->
+                FridgeProductCard(product, onInfo = { onInfo(product) }, modifier = Modifier.width(cellWidth))
             }
         }
     }

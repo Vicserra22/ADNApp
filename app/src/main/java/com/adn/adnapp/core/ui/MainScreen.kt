@@ -79,6 +79,9 @@ fun MainScreen(onNavigateToSplash: () -> Unit, onNavigateToDietSelection: () -> 
     val controllers = AppArea.entries.associateWith { area ->
         key(area.id) { rememberNavController() }
     }
+    val resetAreaToHome: (AppArea) -> Unit = { target ->
+        controllers.getValue(target).popBackStack(AreaTab.HOME.route, inclusive = false)
+    }
     val navController = controllers.getValue(activeArea)
     AreaTheme(activeArea) {
         Scaffold(
@@ -96,7 +99,13 @@ fun MainScreen(onNavigateToSplash: () -> Unit, onNavigateToDietSelection: () -> 
                                     if (tab == null) {
                                         AreaSwitchButton(
                                             onOpen = { selectorOpen = true },
-                                            onCycle = { lastHomeSubRoute = null; homeWasRestored = false; activeArea = nextArea(activeArea, areaCycle) }
+                                            onCycle = {
+                                                val target = nextArea(activeArea, areaCycle)
+                                                resetAreaToHome(target)
+                                                lastHomeSubRoute = null
+                                                homeWasRestored = false
+                                                activeArea = target
+                                            }
                                         )
                                     } else {
                                         val selected = route == tab.route ||
@@ -286,7 +295,13 @@ fun MainScreen(onNavigateToSplash: () -> Unit, onNavigateToDietSelection: () -> 
                         val colors = area.palette()
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Surface(
-                                onClick = { lastHomeSubRoute = null; homeWasRestored = false; activeArea = area; selectorOpen = false },
+                                onClick = {
+                                    resetAreaToHome(area)
+                                    lastHomeSubRoute = null
+                                    homeWasRestored = false
+                                    activeArea = area
+                                    selectorOpen = false
+                                },
                                 shape = CircleShape,
                                 color = colors.soft,
                                 contentColor = colors.ink,
