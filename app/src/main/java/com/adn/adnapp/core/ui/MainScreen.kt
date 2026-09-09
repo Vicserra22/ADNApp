@@ -47,6 +47,7 @@ import com.adn.adnapp.feature.home.FoodSection
 import com.adn.adnapp.feature.home.NutritionHomeScreen
 import com.adn.adnapp.feature.home.CustomDishScreen
 import com.adn.adnapp.feature.home.WellnessScreen
+import com.adn.adnapp.feature.agenda.AgendaHomeScreen
 import com.adn.adnapp.feature.profile.ProfileScreen
 
 private enum class AreaTab(val route: String, val title: String) {
@@ -140,7 +141,8 @@ fun MainScreen(onNavigateToSplash: () -> Unit, onNavigateToDietSelection: () -> 
                             onDish = { navController.navigate(Screen.CustomDish.route) },
                             onSaved = { navController.navigate(Screen.SavedFoods.route) },
                             onWellness = { navController.navigate(Screen.Wellness.route) }
-                        ) else AreaLanding(hostArea, AreaTab.HOME,
+                        ) else if (hostArea == AppArea.AGENDA) AgendaHomeScreen()
+                        else AreaLanding(hostArea, AreaTab.HOME,
                             onSearch = { navController.navigate(Screen.FoodSearch.route) },
                             onDiet = onNavigateToDietSelection,
                             onProfile = { navController.navigate(Screen.Profile.route) })

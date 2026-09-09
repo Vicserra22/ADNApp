@@ -12,6 +12,7 @@ import com.adn.adnapp.feature.registration.dietselection.DietSelectionViewModel
 import com.adn.adnapp.feature.home.HomeViewModel
 import com.adn.adnapp.feature.home.CustomDishViewModel
 import com.adn.adnapp.feature.home.WellnessViewModel
+import com.adn.adnapp.feature.agenda.AgendaViewModel
 import com.adn.adnapp.feature.dashboard.DashboardViewModel
 import com.adn.adnapp.feature.profile.ProfileViewModel
 import com.adn.adnapp.feature.dayviewer.DayViewerViewModel
@@ -40,6 +41,7 @@ val appModule = module {
     viewModel { HomeViewModel(get(), get(), get(), get(), get()) }
     viewModel { CustomDishViewModel(get(), get(), get()) }
     viewModel { WellnessViewModel(get(), get(), get()) }
+    viewModel { AgendaViewModel(get(), get()) }
     viewModelOf(::DashboardViewModel)
     viewModelOf(::ProfileViewModel)
     viewModel { parameters -> DayViewerViewModel(parameters.get(), get(), get(), get(), get(), get()) }
