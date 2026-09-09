@@ -10,6 +10,12 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface FoodCacheDao {
+    @Transaction
+    suspend fun saveCustomDish(userId: String, product: ProductCacheEntity) {
+        upsertProducts(listOf(product))
+        upsertFavorite(FavoriteFoodEntity(userId, product.key, System.currentTimeMillis()))
+    }
+
     @Upsert
     suspend fun upsertProducts(products: List<ProductCacheEntity>)
 

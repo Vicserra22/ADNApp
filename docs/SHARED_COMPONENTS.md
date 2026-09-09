@@ -2,6 +2,10 @@
 
 ## Reutilizar desde ahora
 
+- `CellShape`, `CellSurface` y `FoodIllustration`: contornos celulares y dibujos de los accesos y categorías de Nutrición. El ADN conserva el centro y el eje de alineación del navegador flotante.
+- `LocalFloatingNavigationInset`: margen desplazable final para que las listas pasen bajo la navegación sin dejar sus últimos elementos tapados. No aplicarlo como relleno exterior del NavHost, que impediría el efecto solicitado.
+- `NutritionHomeScreen`: Súper, Mercadillo y Lo mejor de la casa, con destinos separados y acceso a alimentos guardados. La dirección de diseño se documenta en `P0_DISENO_Y_NAVEGACION.md`.
+
 - `core/ui/NutritionProgressCard`: resumen único para el día actual y los días del calendario; comparte barras, colores, textos y tolerancias, incluida la ausencia de penalización por exceso de proteína.
 - `core/ui/NavigationIcons`: iconos Lucide de casa, gráfico, destellos y engranaje, con trazo redondeado y colores del área. Licencia incluida en assets/licenses/lucide.txt.
 

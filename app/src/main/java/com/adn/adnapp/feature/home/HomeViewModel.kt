@@ -73,12 +73,12 @@ class HomeViewModel(
     }
 
     private fun observeFoodLibrary() {
-        val uid = authRepository.getCurrentUserId() ?: return
         viewModelScope.launch {
             foodRepository.observeFreshFoods().collect { foods ->
                 _uiState.update { it.copy(freshFoods = foods) }
             }
         }
+        val uid = authRepository.getCurrentUserId() ?: return
         viewModelScope.launch {
             foodRepository.observeRecentFoods(uid).collect { foods ->
                 _uiState.update { it.copy(recentFoods = foods) }

@@ -31,7 +31,7 @@ internal fun AreaSwitchButton(onOpen: () -> Unit, onCycle: () -> Unit) {
     }
     CompositionLocalProvider(LocalViewConfiguration provides config) {
         Surface(
-            modifier = Modifier.size(64.dp).semantics {
+            modifier = Modifier.size(80.dp).semantics {
                 contentDescription = "Cambiar área"
                 role = Role.Button
                 onClick("Elegir área") { currentOpen(); true }
@@ -45,12 +45,12 @@ internal fun AreaSwitchButton(onOpen: () -> Unit, onCycle: () -> Unit) {
                     }
                 )
             },
-            shape = CircleShape,
+            shape = CellShape(4),
             color = MaterialTheme.colorScheme.primary,
             border = BorderStroke(3.dp, MaterialTheme.colorScheme.primaryContainer),
             shadowElevation = 5.dp
         ) {
-            Image(painterResource(R.drawable.adn_logo), null, Modifier.padding(14.dp))
+            Image(painterResource(R.drawable.adn_logo), null, Modifier.padding(17.dp))
         }
     }
 }

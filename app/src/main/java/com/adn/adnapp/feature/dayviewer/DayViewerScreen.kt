@@ -1,5 +1,7 @@
 package com.adn.adnapp.feature.dayviewer
 
+import com.adn.adnapp.core.ui.LocalFloatingNavigationInset
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -59,7 +61,7 @@ fun DayViewerScreen(date: String, onBack: () -> Unit) {
     ) { padding ->
         Column(
             Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = LocalFloatingNavigationInset.current + 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             if (state.isLoading) CircularProgressIndicator(Modifier.align(Alignment.CenterHorizontally))

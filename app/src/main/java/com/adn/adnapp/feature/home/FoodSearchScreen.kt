@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,6 +37,7 @@ import coil.compose.AsyncImage
 import com.adn.adnapp.data.model.entity.Product
 import com.adn.adnapp.data.model.entity.ProductNutrient
 import com.adn.adnapp.core.ui.CompactTopBar
+import com.adn.adnapp.core.ui.LocalFloatingNavigationInset
 import com.adn.adnapp.core.ui.EntryDateSheet
 import com.adn.adnapp.core.ui.readableDate
 import java.util.Locale
@@ -46,12 +48,17 @@ import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FoodSearchScreen(viewModel: HomeViewModel = koinViewModel()) {
+fun FoodSearchScreen(
+    viewModel: HomeViewModel = koinViewModel(),
+    initialSection: FoodSection = FoodSection.PRODUCTS,
+    onBack: (() -> Unit)? = null
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var infoProduct by remember { mutableStateOf<Product?>(null) }
-    var freshQuery by remember { mutableStateOf("") }
-    var freshCategory by remember { mutableStateOf<String?>(null) }
+    var freshQuery by rememberSaveable { mutableStateOf("") }
+    var freshCategory by rememberSaveable { mutableStateOf<String?>(null) }
     val context = LocalContext.current
+    LaunchedEffect(initialSection) { viewModel.onFoodSectionChanged(initialSection) }
     val scanner = remember(context) {
         GmsBarcodeScanning.getClient(
             context,
@@ -67,10 +74,14 @@ fun FoodSearchScreen(viewModel: HomeViewModel = koinViewModel()) {
         )
     }
 
-    Scaffold(topBar = { CompactTopBar("Buscar alimentos") }) { padding ->
+    Scaffold(topBar = { CompactTopBar(when (state.foodSection) {
+        FoodSection.PRODUCTS -> "Súper"
+        FoodSection.FRESH -> "Mercadillo"
+        FoodSection.SAVED -> "Mis alimentos"
+    }, onBack) }) { padding ->
         LazyColumn(
             Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = LocalFloatingNavigationInset.current + 12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item { Text("Registro para " + state.screenDate.readableDate(),
@@ -82,8 +93,8 @@ fun FoodSearchScreen(viewModel: HomeViewModel = koinViewModel()) {
                             selected = state.foodSection == section,
                             onClick = { viewModel.onFoodSectionChanged(section) },
                             label = { Text(when (section) {
-                                FoodSection.PRODUCTS -> "Productos"
-                                FoodSection.FRESH -> "Frescos"
+                                FoodSection.PRODUCTS -> "Súper"
+                                FoodSection.FRESH -> "Mercadillo"
                                 FoodSection.SAVED -> "Guardados"
                             }) },
                             modifier = Modifier.weight(1f)
@@ -152,16 +163,22 @@ fun FoodSearchScreen(viewModel: HomeViewModel = koinViewModel()) {
                     }
                     item {
                         val categories = state.freshFoods.flatMap { it.categories.take(1) }.distinct()
-                        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            FilterChip(selected = freshCategory == null, onClick = { freshCategory = null }, label = { Text("Todos") })
-                            categories.forEach { category ->
-                                FilterChip(selected = freshCategory == category, onClick = { freshCategory = category }, label = { Text(category) })
-                            }
+                        if (freshCategory == null && freshQuery.isBlank()) {
+                            FoodCategoryBubbles(categories, freshCategory) { freshCategory = it }
+                        } else {
+                            TextButton(onClick = { freshCategory = null; freshQuery = "" }) { Text("Todas las categorías") }
+                            freshCategory?.let { Text(it, style = MaterialTheme.typography.titleMedium) }
                         }
                     }
                 }
                 FoodSection.SAVED -> item {
                     Text("Favoritos y alimentos usados recientemente.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            if (state.foodSection == FoodSection.PRODUCTS && state.searchQuery.isBlank() && state.searchResults.isEmpty() && !state.isSearching) item {
+                FoodCategoryBubbles(listOf("Quesos", "Carnes", "Pescados", "Verduras", "Lácteos", "Frutas", "Cereales", "Legumbres", "Frutos secos"), null) {
+                    viewModel.onSearchQueryChanged(it)
+                    viewModel.searchFood()
                 }
             }
             if (state.isSearching) item {

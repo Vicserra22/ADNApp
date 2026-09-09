@@ -1,5 +1,7 @@
 package com.adn.adnapp.feature.profile
 
+import com.adn.adnapp.core.ui.LocalFloatingNavigationInset
+
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -92,7 +94,7 @@ fun ProfileScreen(
             )
             else -> Column(
                 Modifier.fillMaxSize().padding(padding).imePadding().verticalScroll(rememberScrollState())
-                    .padding(horizontal = 18.dp, vertical = 10.dp),
+                    .padding(start = 18.dp, end = 18.dp, top = 10.dp, bottom = LocalFloatingNavigationInset.current + 10.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 ProfileHeader(state.userProfile!!, state.isEditing, viewModel::startEditing)

@@ -26,6 +26,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
@@ -41,13 +43,16 @@ import com.adn.adnapp.data.local.AreaCyclePreferences
 import com.adn.adnapp.data.local.nextArea
 import com.adn.adnapp.feature.dayviewer.DayViewerScreen
 import com.adn.adnapp.feature.home.FoodSearchScreen
+import com.adn.adnapp.feature.home.FoodSection
+import com.adn.adnapp.feature.home.NutritionHomeScreen
+import com.adn.adnapp.feature.home.CustomDishScreen
 import com.adn.adnapp.feature.profile.ProfileScreen
 
 private enum class AreaTab(val route: String, val title: String) {
     HOME("home", "Home"),
     ANALYSIS("dashboard", "Análisis"),
     SOON("soon", "Próximamente"),
-    SETTINGS("settings", "Personalización")
+    SETTINGS("settings", "Ajustes")
 }
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
@@ -71,13 +76,12 @@ fun MainScreen(onNavigateToSplash: () -> Unit, onNavigateToDietSelection: () -> 
                 if (!WindowInsets.isImeVisible) {
                     val entry by navController.currentBackStackEntryAsState()
                     val route = entry?.destination?.route
-                    Surface(shadowElevation = 12.dp, tonalElevation = 3.dp) {
-                        Row(
-                            Modifier.fillMaxWidth().navigationBarsPadding().padding(bottom = 6.dp),
+                    Row(
+                            Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 8.dp, vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             listOf(AreaTab.HOME, AreaTab.ANALYSIS, null, AreaTab.SOON, AreaTab.SETTINGS).forEach { tab ->
-                                Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                                Box(if (tab == null) Modifier.width(84.dp) else Modifier.weight(1f), contentAlignment = Alignment.Center) {
                                     if (tab == null) {
                                         AreaSwitchButton(
                                             onOpen = { selectorOpen = true },
@@ -86,63 +90,55 @@ fun MainScreen(onNavigateToSplash: () -> Unit, onNavigateToDietSelection: () -> 
                                     } else {
                                         val selected = route == tab.route ||
                                             (tab == AreaTab.ANALYSIS && route == Screen.DayViewer.route) ||
-                                            (tab == AreaTab.HOME && route == Screen.FoodSearch.route) ||
+                                            (tab == AreaTab.HOME && route in listOf(Screen.FoodSearch.route, Screen.FreshMarket.route, Screen.SavedFoods.route, Screen.CustomDish.route)) ||
                                             (tab == AreaTab.SETTINGS && route == Screen.Profile.route)
-                                        Column(
-                                            Modifier.fillMaxWidth().heightIn(min = 64.dp)
-                                                .clickable {
+                                        CellNavigationButton(
+                                            label = if (tab == AreaTab.SOON) "Más" else tab.title,
+                                            icon = when (tab) {
+                                                AreaTab.HOME -> NavigationIcons.Home
+                                                AreaTab.ANALYSIS -> NavigationIcons.Analysis
+                                                AreaTab.SOON -> NavigationIcons.Soon
+                                                AreaTab.SETTINGS -> NavigationIcons.Settings
+                                            },
+                                            onClick = {
                                                     navController.navigate(tab.route) {
                                                         popUpTo(navController.graph.findStartDestination().id) { saveState = true }
                                                         launchSingleTop = true
                                                         restoreState = true
                                                     }
-                                                }.padding(horizontal = 2.dp, vertical = 5.dp),
-                                            horizontalAlignment = Alignment.CenterHorizontally,
-                                            verticalArrangement = Arrangement.spacedBy(4.dp)
-                                        ) {
-                                            Surface(
-                                                shape = RoundedCornerShape(10.dp),
-                                                color = if (selected) MaterialTheme.colorScheme.primaryContainer
-                                                    else MaterialTheme.colorScheme.surface
-                                            ) {
-                                                Icon(
-                                                    when (tab) {
-                                                        AreaTab.HOME -> NavigationIcons.Home
-                                                        AreaTab.ANALYSIS -> NavigationIcons.Analysis
-                                                        AreaTab.SOON -> NavigationIcons.Soon
-                                                        AreaTab.SETTINGS -> NavigationIcons.Settings
-                                                    },
-                                                    null,
-                                                    Modifier.padding(horizontal = 12.dp, vertical = 4.dp).size(26.dp),
-                                                    tint = MaterialTheme.colorScheme.primary
-                                                )
-                                            }
-                                            Text(
-                                                tab.title, fontSize = 9.sp, maxLines = 2,
-                                                textAlign = TextAlign.Center,
-                                                fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
-                                            )
-                                        }
+                                                },
+                                            modifier = Modifier.widthIn(max = 72.dp).fillMaxWidth().height(76.dp).semantics {
+                                                this.selected = selected
+                                                contentDescription = tab.title
+                                            },
+                                            variant = tab.ordinal,
+                                            selected = selected
+                                        )
                                     }
                                 }
                             }
                         }
-                    }
                 }
             }
         ) { padding ->
+            CompositionLocalProvider(LocalFloatingNavigationInset provides padding.calculateBottomPadding()) {
             key(activeArea) {
                 // Capture this host's area: outgoing destinations must never read a new mode.
                 val hostArea = activeArea
                 NavHost(navController, AreaTab.HOME.route,
-                    Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding),
+                    Modifier.fillMaxSize().imePadding(),
                     enterTransition = { EnterTransition.None },
                     exitTransition = { ExitTransition.None },
                     popEnterTransition = { EnterTransition.None },
                     popExitTransition = { ExitTransition.None }
                 ) {
                     composable(AreaTab.HOME.route) {
-                        AreaLanding(hostArea, AreaTab.HOME,
+                        if (hostArea == AppArea.NUTRITION) NutritionHomeScreen(
+                            onSuper = { navController.navigate(Screen.FoodSearch.route) },
+                            onMarket = { navController.navigate(Screen.FreshMarket.route) },
+                            onDish = { navController.navigate(Screen.CustomDish.route) },
+                            onSaved = { navController.navigate(Screen.SavedFoods.route) }
+                        ) else AreaLanding(hostArea, AreaTab.HOME,
                             onSearch = { navController.navigate(Screen.FoodSearch.route) },
                             onDiet = onNavigateToDietSelection,
                             onProfile = { navController.navigate(Screen.Profile.route) })
@@ -162,7 +158,18 @@ fun MainScreen(onNavigateToSplash: () -> Unit, onNavigateToDietSelection: () -> 
                             onCycleSettings = { cycleSettingsOpen = true })
                     }
                     if (hostArea == AppArea.NUTRITION) {
-                        composable(Screen.FoodSearch.route) { FoodSearchScreen() }
+                        composable(Screen.FoodSearch.route) {
+                            FoodSearchScreen(initialSection = FoodSection.PRODUCTS, onBack = { navController.popBackStack() })
+                        }
+                        composable(Screen.FreshMarket.route) {
+                            FoodSearchScreen(initialSection = FoodSection.FRESH, onBack = { navController.popBackStack() })
+                        }
+                        composable(Screen.SavedFoods.route) {
+                            FoodSearchScreen(initialSection = FoodSection.SAVED, onBack = { navController.popBackStack() })
+                        }
+                        composable(Screen.CustomDish.route) {
+                            CustomDishScreen(onBack = { navController.popBackStack() })
+                        }
                         composable(Screen.Profile.route) {
                             ProfileScreen(onNavigateToSplash = onNavigateToSplash,
                                 onBack = { navController.popBackStack() })
@@ -177,6 +184,7 @@ fun MainScreen(onNavigateToSplash: () -> Unit, onNavigateToDietSelection: () -> 
                         }
                     }
                 }
+            }
             }
         }
         if (cycleSettingsOpen) AreaCycleSettings(
@@ -246,7 +254,8 @@ private fun AreaLanding(
 ) {
     Scaffold(topBar = { CompactTopBar(area.label() + " · " + tab.title) }) { padding ->
         Column(
-            Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(20.dp),
+            Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState())
+                .padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = LocalFloatingNavigationInset.current + 20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Surface(shape = RoundedCornerShape(24.dp), color = MaterialTheme.colorScheme.primaryContainer) {

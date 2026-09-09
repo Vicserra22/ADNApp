@@ -31,6 +31,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.adn.adnapp.domain.model.AppArea
 import com.adn.adnapp.domain.model.DailyActivityLevel
 import com.adn.adnapp.core.ui.CompactTopBar
+import com.adn.adnapp.core.ui.LocalFloatingNavigationInset
 import com.adn.adnapp.domain.service.GoalCalculator
 import com.adn.adnapp.feature.home.HomeViewModel
 import com.adn.adnapp.feature.home.ManualNutritionCard
@@ -51,7 +52,7 @@ fun DashboardScreen(
     Scaffold(topBar = { CompactTopBar("Nutrición") }) { padding ->
         LazyColumn(
             Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = LocalFloatingNavigationInset.current + 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {

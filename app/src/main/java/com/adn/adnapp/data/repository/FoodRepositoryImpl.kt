@@ -114,9 +114,14 @@ class FoodRepositoryImpl(
         cacheDao.recordRecent(uid, entity.key, System.currentTimeMillis())
     }
 
+    override suspend fun saveCustomDish(uid: String, product: Product): Result<Unit> = runCatching {
+        require(product.code.startsWith("dish:$uid:"))
+        cacheDao.saveCustomDish(uid, product.cacheEntity())
+    }
+
     private fun Product.cacheEntity() = if (code.startsWith("fresh:")) {
         ProductCacheMapper.toEntity(this, FoodSource.LOCAL_FRESH, code.removePrefix("fresh:"), null)
-    } else ProductCacheMapper.toEntity(this, FoodSource.OPEN_FOOD_FACTS)
+    } else ProductCacheMapper.toEntity(this, if (code.startsWith("dish:")) "custom_dish" else FoodSource.OPEN_FOOD_FACTS)
 
     private fun Product.cacheKey() = cacheEntity().key
 

@@ -15,6 +15,7 @@ interface FoodRepository {
     fun observeFavoriteFoods(uid: String): Flow<List<Product>>
     suspend fun isFavorite(uid: String, product: Product): Boolean
     suspend fun toggleFavorite(uid: String, product: Product): Result<Boolean>
+    suspend fun saveCustomDish(uid: String, product: Product): Result<Unit>
     suspend fun recordProductUsed(uid: String, product: Product)
     suspend fun saveFoodEntry(uid: String, entry: FoodEntry, dateKey: String): Result<Unit>
     suspend fun updateFoodEntry(uid: String, entry: FoodEntry, dateKey: String): Result<Unit>
