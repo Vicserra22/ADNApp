@@ -18,6 +18,8 @@ interface FoodRepository {
     suspend fun saveCustomDish(uid: String, product: Product): Result<Unit>
     suspend fun recordProductUsed(uid: String, product: Product)
     suspend fun saveFoodEntry(uid: String, entry: FoodEntry, dateKey: String): Result<Unit>
+    suspend fun saveWaterEntry(uid: String, dateKey: String, amountMl: Double): Result<String>
+    suspend fun deleteWaterEntry(uid: String, dateKey: String, entryId: String): Result<Unit>
     suspend fun updateFoodEntry(uid: String, entry: FoodEntry, dateKey: String): Result<Unit>
     suspend fun deleteFoodEntry(uid: String, entryId: String, dateKey: String): Result<Unit>
     suspend fun setDailyActivityLevel(uid: String, dateKey: String, level: DailyActivityLevel): Result<Unit>

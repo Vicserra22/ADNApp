@@ -15,7 +15,13 @@ import androidx.compose.ui.semantics.semantics
 import com.adn.adnapp.core.ui.*
 
 @Composable
-fun NutritionHomeScreen(onSuper: () -> Unit, onMarket: () -> Unit, onDish: () -> Unit, onSaved: () -> Unit) {
+fun NutritionHomeScreen(
+    onSuper: () -> Unit,
+    onMarket: () -> Unit,
+    onDish: () -> Unit,
+    onSaved: () -> Unit,
+    onWellness: () -> Unit = {}
+) {
     Scaffold(topBar = { CompactTopBar("Nutrición") }) { padding ->
         Column(
             Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState())
@@ -31,7 +37,11 @@ fun NutritionHomeScreen(onSuper: () -> Unit, onMarket: () -> Unit, onDish: () ->
             }
             FoodPortal("Lo mejor de la casa", "Tus propios platos", FoodIllustration.PLATE, 6, onDish,
                 Modifier.widthIn(max = 200.dp).fillMaxWidth())
-            TextButton(onClick = onSaved) { Text("Mis alimentos guardados") }
+            TextButton(onClick = onSaved) { Text("Abrir nevera") }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                FoodPortal("Agua", "Hidratación", FoodIllustration.WATER, 7, onWellness, Modifier.weight(1f))
+                FoodPortal("Sol", "Tiempo exterior", FoodIllustration.SUN, 8, onWellness, Modifier.weight(1f))
+            }
         }
     }
 }

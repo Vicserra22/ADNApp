@@ -13,7 +13,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
 
-enum class FoodIllustration { CART, FRESH, PLATE, FISH, LEAF, FRUIT, DAIRY, GRAINS }
+enum class FoodIllustration { CART, FRESH, PLATE, FISH, LEAF, FRUIT, DAIRY, GRAINS, WATER, SUN }
 
 @Composable
 fun FoodIllustration(kind: FoodIllustration, modifier: Modifier = Modifier) {
@@ -133,6 +133,31 @@ fun FoodIllustration(kind: FoodIllustration, modifier: Modifier = Modifier) {
                     drawLine(ink, Offset(5f, 37f), Offset(15f, 37f), 3f, StrokeCap.Round)
                     drawLine(ink, Offset(93f, 22f), Offset(93f, 81f), 3.5f, StrokeCap.Round)
                     drawRoundRect(ink, Offset(87f, 22f), Size(7f, 27f), CornerRadius(3f))
+                }
+                FoodIllustration.WATER -> {
+                    val drop = Path().apply {
+                        moveTo(50f, 12f)
+                        cubicTo(36f, 31f, 23f, 45f, 23f, 62f)
+                        cubicTo(23f, 80f, 35f, 90f, 50f, 90f)
+                        cubicTo(65f, 90f, 77f, 80f, 77f, 62f)
+                        cubicTo(77f, 45f, 64f, 31f, 50f, 12f)
+                        close()
+                    }
+                    drawPath(drop, soft)
+                    drawPath(drop, ink, style = Stroke(3f))
+                    drawArc(paper.copy(alpha = .75f), 120f, 55f, false, Offset(35f, 42f), Size(22f, 27f), style = Stroke(4f, cap = StrokeCap.Round))
+                }
+                FoodIllustration.SUN -> {
+                    val center = Offset(50f, 50f)
+                    drawCircle(Color(0xFFF3B63F), 22f, center)
+                    drawCircle(ink, 22f, center, style = Stroke(3f))
+                    repeat(10) { ray ->
+                        val angle = Math.toRadians((ray * 36).toDouble())
+                        val inner = 31f
+                        val outer = 43f
+                        drawLine(ink, center + Offset((kotlin.math.cos(angle) * inner).toFloat(), (kotlin.math.sin(angle) * inner).toFloat()), center + Offset((kotlin.math.cos(angle) * outer).toFloat(), (kotlin.math.sin(angle) * outer).toFloat()), 3f, StrokeCap.Round)
+                    }
+                    drawCircle(Color(0xFFFFE9CF), 5f, Offset(43f, 43f))
                 }
             }
         }

@@ -141,6 +141,12 @@ class FoodRepositoryImpl(
         }
     }
 
+    override suspend fun saveWaterEntry(uid: String, dateKey: String, amountMl: Double): Result<String> =
+        runCatching { firestoreDataSource.saveWaterEntryAndAggregate(uid, dateKey, amountMl) }
+
+    override suspend fun deleteWaterEntry(uid: String, dateKey: String, entryId: String): Result<Unit> =
+        runCatching { firestoreDataSource.deleteFoodEntryAndAggregate(uid, entryId, dateKey) }
+
     override suspend fun updateFoodEntry(uid: String, entry: FoodEntry, dateKey: String): Result<Unit> =
         runCatching { firestoreDataSource.updateFoodEntryAndAggregate(uid, entry, dateKey) }
 

@@ -46,6 +46,7 @@ import com.adn.adnapp.feature.home.FoodSearchScreen
 import com.adn.adnapp.feature.home.FoodSection
 import com.adn.adnapp.feature.home.NutritionHomeScreen
 import com.adn.adnapp.feature.home.CustomDishScreen
+import com.adn.adnapp.feature.home.WellnessScreen
 import com.adn.adnapp.feature.profile.ProfileScreen
 
 private enum class AreaTab(val route: String, val title: String) {
@@ -137,7 +138,8 @@ fun MainScreen(onNavigateToSplash: () -> Unit, onNavigateToDietSelection: () -> 
                             onSuper = { navController.navigate(Screen.FoodSearch.route) },
                             onMarket = { navController.navigate(Screen.FreshMarket.route) },
                             onDish = { navController.navigate(Screen.CustomDish.route) },
-                            onSaved = { navController.navigate(Screen.SavedFoods.route) }
+                            onSaved = { navController.navigate(Screen.SavedFoods.route) },
+                            onWellness = { navController.navigate(Screen.Wellness.route) }
                         ) else AreaLanding(hostArea, AreaTab.HOME,
                             onSearch = { navController.navigate(Screen.FoodSearch.route) },
                             onDiet = onNavigateToDietSelection,
@@ -169,6 +171,9 @@ fun MainScreen(onNavigateToSplash: () -> Unit, onNavigateToDietSelection: () -> 
                         }
                         composable(Screen.CustomDish.route) {
                             CustomDishScreen(onBack = { navController.popBackStack() })
+                        }
+                        composable(Screen.Wellness.route) {
+                            WellnessScreen(onBack = { navController.popBackStack() })
                         }
                         composable(Screen.Profile.route) {
                             ProfileScreen(onNavigateToSplash = onNavigateToSplash,

@@ -1,5 +1,6 @@
 package com.adn.adnapp.feature.home
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.horizontalScroll
@@ -25,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -77,7 +79,7 @@ fun FoodSearchScreen(
     Scaffold(topBar = { CompactTopBar(when (state.foodSection) {
         FoodSection.PRODUCTS -> "Súper"
         FoodSection.FRESH -> "Mercadillo"
-        FoodSection.SAVED -> "Mis alimentos"
+        FoodSection.SAVED -> "Nevera"
     }, onBack) }) { padding ->
         LazyColumn(
             Modifier.fillMaxSize().padding(padding),
@@ -171,8 +173,11 @@ fun FoodSearchScreen(
                         }
                     }
                 }
-                FoodSection.SAVED -> item {
-                    Text("Favoritos y alimentos usados recientemente.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                FoodSection.SAVED -> {
+                    item { FridgeHeader() }
+                    item {
+                        Text("Favoritos y alimentos usados recientemente. Toca «Más nutrientes» para girar una tarjeta.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
                 }
             }
             if (state.foodSection == FoodSection.PRODUCTS && state.searchQuery.isBlank() && state.searchResults.isEmpty() && !state.isSearching) item {
@@ -267,53 +272,99 @@ private fun ProductResultCard(
     isFavorite: Boolean,
     onFavorite: () -> Unit
 ) {
-    Card(shape = RoundedCornerShape(22.dp), modifier = Modifier.fillMaxWidth().height(220.dp)) {
-        Row(Modifier.fillMaxSize()) {
-            Box(
-                Modifier.weight(.3f).fillMaxHeight().background(MaterialTheme.colorScheme.primaryContainer),
-                contentAlignment = Alignment.Center
-            ) {
-                if (product.imageUrl.isNullOrBlank()) {
-                    Icon(Icons.Default.Search, null, Modifier.size(42.dp), tint = MaterialTheme.colorScheme.primary)
-                } else {
-                    AsyncImage(
-                        model = product.imageUrl, contentDescription = "Foto de ${product.name}",
-                        contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize()
-                    )
-                }
-            }
-            Column(
-                Modifier.weight(.7f).fillMaxHeight().padding(12.dp),
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(verticalAlignment = Alignment.Top) {
-                    Column(Modifier.weight(1f)) {
-                        Text(product.name, fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                        if (product.brands.isNotBlank()) Text(product.brands, style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    }
-                    Row {
-                        IconButton(onClick = onFavorite, modifier = Modifier.size(36.dp)) {
-                            Icon(if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder, "Favorito", tint = MaterialTheme.colorScheme.primary)
+    var flipped by rememberSaveable(product.code) { mutableStateOf(false) }
+    val rotation by animateFloatAsState(if (flipped) 180f else 0f, label = "product-card")
+    Card(
+        shape = RoundedCornerShape(22.dp),
+        modifier = Modifier.fillMaxWidth().height(238.dp).graphicsLayer {
+            rotationY = rotation
+            cameraDistance = 12f * density
+        }
+    ) {
+        if (rotation <= 90f) {
+            Row(Modifier.fillMaxSize()) {
+                ProductImage(product, Modifier.weight(.3f))
+                Column(Modifier.weight(.7f).fillMaxHeight().padding(12.dp), verticalArrangement = Arrangement.SpaceBetween) {
+                    Row(verticalAlignment = Alignment.Top) {
+                        Column(Modifier.weight(1f)) {
+                            Text(product.name, fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                            if (product.brands.isNotBlank()) Text(product.brands, style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
-                        IconButton(onClick = onInfo, modifier = Modifier.size(36.dp)) {
-                            Icon(Icons.Default.Info, "Información nutricional", tint = MaterialTheme.colorScheme.primary)
+                        Row {
+                            IconButton(onClick = onFavorite, modifier = Modifier.size(36.dp)) {
+                                Icon(if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder, "Favorito", tint = MaterialTheme.colorScheme.primary)
+                            }
+                            IconButton(onClick = onInfo, modifier = Modifier.size(36.dp)) {
+                                Icon(Icons.Default.Info, "Información nutricional", tint = MaterialTheme.colorScheme.primary)
+                            }
                         }
                     }
-                }
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    MacroChip("Prot", product.proteins, "g", Modifier.weight(1f))
-                    MacroChip("Carbos", product.carbs, "g", Modifier.weight(1f))
-                }
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    MacroChip("Grasas", product.fats, "g", Modifier.weight(1f))
-                    MacroChip("Energía", product.calories, "kcal", Modifier.weight(1f))
-                }
-                TextButton(onClick = onAdd, modifier = Modifier.align(Alignment.End).height(34.dp),
-                    contentPadding = PaddingValues(horizontal = 8.dp)) {
-                    Icon(Icons.Default.Add, null, Modifier.size(18.dp)); Text("Añadir")
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        MacroChip("Prot", product.proteins, "g", Modifier.weight(1f))
+                        MacroChip("Carbos", product.carbs, "g", Modifier.weight(1f))
+                    }
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        MacroChip("Grasas", product.fats, "g", Modifier.weight(1f))
+                        MacroChip("Energía", product.calories, "kcal", Modifier.weight(1f))
+                    }
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                        TextButton(onClick = { flipped = true }, contentPadding = PaddingValues(horizontal = 5.dp)) { Text("Más nutrientes") }
+                        TextButton(onClick = onAdd, contentPadding = PaddingValues(horizontal = 5.dp)) {
+                            Icon(Icons.Default.Add, null, Modifier.size(18.dp)); Text("Añadir")
+                        }
+                    }
                 }
             }
+        } else {
+            ProductCardBack(product, onFlipBack = { flipped = false })
+        }
+    }
+}
+
+@Composable
+private fun ProductImage(product: Product, modifier: Modifier) {
+    Box(modifier.fillMaxHeight().background(MaterialTheme.colorScheme.primaryContainer), contentAlignment = Alignment.Center) {
+        if (product.imageUrl.isNullOrBlank()) {
+            Icon(Icons.Default.Search, null, Modifier.size(42.dp), tint = MaterialTheme.colorScheme.primary)
+        } else {
+            AsyncImage(model = product.imageUrl, contentDescription = "Foto de ${product.name}", contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+        }
+    }
+}
+
+@Composable
+private fun ProductCardBack(product: Product, onFlipBack: () -> Unit) {
+    Column(
+        Modifier.fillMaxSize().graphicsLayer { rotationY = 180f }.padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("Más nutrientes", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+            TextButton(onClick = onFlipBack) { Text("Volver") }
+        }
+        Text("Por 100 g", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (product.nutrients.isEmpty()) {
+            Text("Sin datos adicionales en la fuente.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        } else {
+            product.nutrients.take(5).forEach { nutrient ->
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text(nutrient.name, Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text("${nutrient.amountPer100g.pretty()} ${nutrient.unit}", fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+        if (product.ingredients.isNotBlank()) Text("Ingredientes: ${product.ingredients}", maxLines = 2, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodySmall)
+        if (product.allergens.isNotEmpty()) Text("Alérgenos: ${product.allergens.joinToString()}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+    }
+}
+
+@Composable
+private fun FridgeHeader() {
+    Card(shape = RoundedCornerShape(26.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {
+        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Text("La nevera", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            Text("Tu enciclopedia personal de alimentos guardados y usados.", color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

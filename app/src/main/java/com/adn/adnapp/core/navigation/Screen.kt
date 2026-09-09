@@ -14,6 +14,7 @@ sealed class Screen(val route: String) {
     object FreshMarket : Screen("fresh_market")
     object SavedFoods : Screen("saved_foods")
     object CustomDish : Screen("custom_dish")
+    object Wellness : Screen("wellness")
     object Dashboard : Screen("dashboard")
     object Profile : Screen("profile")
     object Soon : Screen("soon")

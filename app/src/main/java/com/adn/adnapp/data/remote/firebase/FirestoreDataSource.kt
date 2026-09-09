@@ -130,6 +130,28 @@ class FirestoreDataSource(private val db: FirebaseFirestore) {
         batch.commit().await()
     }
 
+    suspend fun saveWaterEntryAndAggregate(uid: String, dateKey: String, amountMl: Double): String {
+        val batch = db.batch()
+        val userRef = db.collection(FirestoreKeys.USERS).document(uid)
+        val consumptionRef = userRef.collection(FirestoreKeys.DAILY_CONSUMPTION).document(dateKey)
+        val foodsRef = consumptionRef.collection(FirestoreKeys.INGESTED_FOODS).document()
+        val entry = FoodEntry(
+            id = foodsRef.id,
+            name = "Agua",
+            quantity = amountMl,
+            waterMl = amountMl,
+            kind = FoodEntry.KIND_WATER
+        )
+        batch.set(foodsRef, entry.toFirestoreMap())
+        batch.set(
+            consumptionRef,
+            mapOf(FirestoreKeys.WATER_ML to FieldValue.increment(amountMl)),
+            SetOptions.merge()
+        )
+        batch.commit().await()
+        return foodsRef.id
+    }
+
     suspend fun updateFoodEntryAndAggregate(uid: String, entry: FoodEntry, dateKey: String) {
         require(entry.id.isNotBlank()) { "La entrada no tiene identificador" }
         val consumptionRef = dailyConsumptionRef(uid, dateKey)
